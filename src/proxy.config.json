@@ -1,0 +1,24 @@
+{
+    "/api": {
+        "http_method": ["POST"],
+        "target": "http://alkmaar.informatik.uni-mannheim.de/gui2r/gui2r/v1/retrieval",
+        "secure": false,
+        "changeOrigin": true,
+        "logLevel": "debug",
+        "pathRewrite": {
+            "http_method": ["POST"],
+            "^/api": ""
+        }
+    },
+    "/ui": {
+        "http_method": ["GET"],
+        "target": "http://alkmaar.informatik.uni-mannheim.de/static/resources/combined",
+        "secure": false,
+        "changeOrigin": true,
+        "logLevel": "debug",
+        "pathRewrite": {
+            "http_method": ["GET"],
+            "^/ui": ""
+        }
+    }
+}

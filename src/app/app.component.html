@@ -1,0 +1,23 @@
+<h1>Post Results</h1>
+<button (click)="sendRequest()">Load</button>
+<div *ngIf="resultsMeta" id="main">
+  <div *ngFor="let item of resultsMeta; index as i" id="results">
+    {{i+1}}.
+    <ul>
+      <li>Rank: {{item.firstResult.rank}} </li>
+      <li>Index: {{item.firstResult.index}} </li>
+      <li>Score: {{item.firstResult.score}} </li>
+      <li>
+          <img src="{{item.secondResult}}" style="width: 207.5px; height: 368.875px;">
+      </li>
+    </ul>
+  </div>
+</div>
+<!-- <h3>Images</h3>
+<img [src]="imageToShow"
+     alt="Place image title"
+     *ngIf="!isImageLoading; else noImageFound"
+     style="width: 50px; height: 100px;">
+<ng-template #noImageFound>
+     <img src="fallbackImage.png" alt="Fallbackimage">
+</ng-template> -->
