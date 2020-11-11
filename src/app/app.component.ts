@@ -1,6 +1,9 @@
 import { Component } from '@angular/core';
 import { Gui2wireApiService } from './services/gui2wire-api.service';
 import { PostRequest, PostResult } from './classes/post';
+import { FormControl, FormGroup } from '@angular/forms';
+import { Store } from '@ngxs/store';
+import { AddQuery } from './actions/query.actions';
 
 @Component({
   selector: 'app-root',
@@ -13,7 +16,7 @@ export class AppComponent {
   api = "http://alkmaar.informatik.uni-mannheim.de/gui2r/gui2r/v1/retrieval";
 
   postRequest: PostRequest = {
-    query: "login",
+    query: "",
     method: "bm25okapi",
     qe_method:"",
     max_results: 8
@@ -28,20 +31,27 @@ export class AppComponent {
 
   compoundResult: any[];
   blobs: any[];
+  value;
+  searchForm: FormGroup;
 
-  constructor(private service: Gui2wireApiService) { }
+  constructor(private store: Store,
+    private service: Gui2wireApiService) { }
 
-  // ngOnInit() {
-  //   console.log("Sending request to API");
-  //   const images = this.sendRequest();
-  //   console.log(images);
-  //   this.getUIs(images);
-  // }
+  addQuery(query, requestType) {
+    this.store.dispatch(new AddQuery({query: query, requestType: requestType}));
+  }
 
-  //Nicer Version but with HTTP Errors
+  ngOnInit() {
+    this.searchForm = new FormGroup({
+      value: new FormControl("login")
+    });
+  }
 
   sendRequest() {
     //_data;
+    this.postRequest.query = this.searchForm.get("value").value;
+    console.log("this post request:", this.postRequest);
+
     this.service.post('/api', this.postRequest).subscribe(data => {
       this.resultsMeta = [...data.results];
       console.log("Results: ", this.resultsMeta);
@@ -72,6 +82,7 @@ export class AppComponent {
       }
 
       //this.getUIs(data);
+      this.searchForm.reset();
     });
     // return _data;
   }
@@ -120,24 +131,5 @@ export class AppComponent {
     console.log(a1);
     return a1;
   }
-
-
-  // combineResults() {
-  //   //this.results = [];
-  //   if(!this.resultsMeta && !this.resultsImages) {
-  //     this.results = this.resultsMeta;
-  //     console.log("Spread 1: ", this.results);
-
-  //     const mergeById = (meta, images) =>
-  //       meta.map(itm => ({
-  //         ...images.find((item) => (item.id === itm.id) && item),
-  //         ...itm
-  //       }));
-
-  //      console.log("Merge:", mergeById(this.results, this.resultsImages));
-  //      console.log("Results new: ", this.results);
-
-  //   }
-  // }
 
 }

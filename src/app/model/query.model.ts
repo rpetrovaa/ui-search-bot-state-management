@@ -1,6 +1,6 @@
-export interface IState {
+export interface Query {
     query: string,
-    request_type: RequestType
+    requestType: RequestType
 }
 
 enum RequestType {

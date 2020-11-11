@@ -1,5 +1,13 @@
 <h1>Post Results</h1>
-<button (click)="sendRequest()">Load</button>
+<div *ngIf="searchForm">
+  <form [formGroup]="searchForm" novalidate>
+    <mat-form-field>
+      <mat-label>Search Request</mat-label>
+      <input matInput placeholder="Enter request" formControlName="value">
+    </mat-form-field>
+    <button (click)="sendRequest()">Load</button>
+  </form>
+</div>
 <div *ngIf="resultsMeta" id="main">
   <div *ngFor="let item of resultsMeta; index as i" id="results">
     {{i+1}}.
