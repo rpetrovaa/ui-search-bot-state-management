@@ -1,17 +1,20 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, Query } from '@angular/core';
 import { Gui2wireApiService } from './services/gui2wire-api.service';
 import { PostRequest, PostResult } from './classes/post';
 import { FormControl, FormGroup } from '@angular/forms';
-import { Store } from '@ngxs/store';
 import { AddQuery } from './actions/query.actions';
+import { QueryState, QueryStateModel } from './state/query.state';
+import { Observable } from 'rxjs';
+import {Select, Store} from '@ngxs/store';
+
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent {
-  //title = 'state-management';
+export class AppComponent implements OnInit{
+  @Select(QueryState.getQueries) queries: Observable<PostRequest[]>;
   
   api = "http://alkmaar.informatik.uni-mannheim.de/gui2r/gui2r/v1/retrieval";
 
@@ -37,9 +40,9 @@ export class AppComponent {
   constructor(private store: Store,
     private service: Gui2wireApiService) { }
 
-  addQuery(query, requestType) {
-    this.store.dispatch(new AddQuery({query: query, requestType: requestType}));
-  }
+  // addQuery(requestType: PostRequest) {
+  //   this.store.dispatch(new AddQuery({requestType}));
+  // }
 
   ngOnInit() {
     this.searchForm = new FormGroup({
@@ -50,8 +53,7 @@ export class AppComponent {
   sendRequest() {
     //_data;
     this.postRequest.query = this.searchForm.get("value").value;
-    console.log("this post request:", this.postRequest);
-
+    this.store.dispatch(new AddQuery(this.postRequest)).subscribe(() =>
     this.service.post('/api', this.postRequest).subscribe(data => {
       this.resultsMeta = [...data.results];
       console.log("Results: ", this.resultsMeta);
@@ -83,7 +85,42 @@ export class AppComponent {
 
       //this.getUIs(data);
       this.searchForm.reset();
-    });
+    })
+    );
+    //console.log("this post request:", this.postRequest);
+
+    // this.service.post('/api', this.postRequest).subscribe(data => {
+    //   this.resultsMeta = [...data.results];
+    //   console.log("Results: ", this.resultsMeta);
+    //   //_data = data;
+
+    //   this.resultsImages = [];
+    //   this.blobs = [];
+
+    //   data.results.forEach(result => {
+    //     const index = result.index;
+    //     //this.resultsImages.push(index);
+    //     const url = '/ui/' + index + '.jpg';
+    //     // console.log("URL: ", url);
+    //     this.resultsImages.push(url);
+    //   });
+
+    //   this.resultsMeta = this.combineArrays(this.resultsMeta, this.resultsImages);
+    //   console.log("updated:", this.resultsMeta)
+
+
+
+    //   console.log("this.resultsImages", this.resultsImages);
+    //   console.log("blobs 2", this.blobs);
+
+    //   if(!data) { 
+    //     console.log("empty data!");
+    //     return
+    //   }
+
+    //   //this.getUIs(data);
+    //   this.searchForm.reset();
+    // });
     // return _data;
   }
 

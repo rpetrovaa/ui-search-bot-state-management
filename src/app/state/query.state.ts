@@ -26,13 +26,12 @@ export class QueryState {
     }
 
     @Action(AddQuery)
-    add({getState, patchState}: StateContext<QueryStateModel>, { url, payload }: AddQuery) {
-        return this.queryService.post(url, payload).pipe((result) => {
-            const query = result;
+    add({getState, setState}: StateContext<QueryStateModel>, { payload }: AddQuery) {
+        return this.queryService.post('/api', payload).subscribe((result) => {
             const state = getState();
             setState({
                 ...state,
-                queries: query
+                queries: result
             });
           })
     }
