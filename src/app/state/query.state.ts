@@ -6,7 +6,7 @@ import { Query } from '../model/query.model';
 import { Gui2wireApiService } from '../services/gui2wire-api.service';
 
 export class QueryStateModel {
-    queries: PostRequest[];
+    queries: Query[];
 }
 
 @State<QueryStateModel>({
@@ -27,7 +27,7 @@ export class QueryState {
 
     @Action(AddQuery)
     add({getState, setState}: StateContext<QueryStateModel>, { payload }: AddQuery) {
-        return this.queryService.post('/api', payload).subscribe((result) => {
+        return this.queryService.post('/api', payload.postRequest).subscribe((result) => {
             const state = getState();
             setState({
                 ...state,

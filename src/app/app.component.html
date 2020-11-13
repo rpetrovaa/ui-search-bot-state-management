@@ -9,6 +9,31 @@
   </form>
 </div>
 <div *ngIf="resultsMeta" id="main">
+  <!-- <div *ngFor="let item of resultsMeta; index as i" id="results"> -->
+
+    <mat-grid-list cols="3" rowHeight="600px">
+      <mat-grid-tile *ngFor="let item of resultsMeta; index as i" id="results">
+        <mat-card class="example-card">
+          <mat-card-header>
+            <mat-card-title>{{i+1}}</mat-card-title>
+          </mat-card-header>
+          <img mat-card-image src="{{item.secondResult}}">
+          <mat-card-content>
+            <ul>
+              <li>Rank: {{item.firstResult.rank}} </li>
+              <li>Index: {{item.firstResult.index}} </li>
+              <li>Score: {{item.firstResult.score}} </li>
+            </ul>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+    </mat-grid-list>
+
+  <!-- </div> -->
+</div>
+
+
+<!-- <div *ngIf="resultsMeta" id="main">
   <div *ngFor="let item of resultsMeta; index as i" id="results">
     {{i+1}}.
     <ul>
@@ -20,7 +45,9 @@
       </li>
     </ul>
   </div>
-</div>
+</div> -->
+
+<!-- OLD -->
 <!-- <h3>Images</h3>
 <img [src]="imageToShow"
      alt="Place image title"

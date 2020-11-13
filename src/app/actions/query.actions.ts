@@ -4,5 +4,5 @@ import { Query } from '../model/query.model';
 export class AddQuery {
     static readonly type = '[QUERY] Add'
 
-    constructor(public payload: PostRequest) {}
+    constructor(public payload: Query) {}
 }

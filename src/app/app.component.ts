@@ -6,6 +6,8 @@ import { AddQuery } from './actions/query.actions';
 import { QueryState, QueryStateModel } from './state/query.state';
 import { Observable } from 'rxjs';
 import {Select, Store} from '@ngxs/store';
+import { INITIAL_STATE_TOKEN } from '@ngxs/store/internals';
+import { RequestType } from './model/query.model';
 
 
 @Component({
@@ -53,7 +55,8 @@ export class AppComponent implements OnInit{
   sendRequest() {
     //_data;
     this.postRequest.query = this.searchForm.get("value").value;
-    this.store.dispatch(new AddQuery(this.postRequest)).subscribe(() =>
+    //let query: Query = {query: this.postRequest.query, requestType: "INITIAL", postRequest: this.postRequest}
+    this.store.dispatch(new AddQuery({query: this.postRequest.query, requestType: RequestType.INITIAL, postRequest: this.postRequest})).subscribe(() =>
     this.service.post('/api', this.postRequest).subscribe(data => {
       this.resultsMeta = [...data.results];
       console.log("Results: ", this.resultsMeta);

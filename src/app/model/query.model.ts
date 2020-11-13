@@ -1,8 +1,11 @@
+import { PostRequest } from '../classes/post';
+
 export interface Query {
     query: string,
-    requestType: RequestType
+    requestType: RequestType,
+    postRequest: PostRequest
 }
 
-enum RequestType {
+export enum RequestType {
     INITIAL, ADDITIVE, NEGATIVE
 }
