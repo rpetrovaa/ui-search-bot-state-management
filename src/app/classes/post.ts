@@ -1,6 +1,6 @@
 export class PostRequest {
     query: string;
-    method: string; 
+    method: string;
 	qe_method: string;
 	max_results: number;
 }

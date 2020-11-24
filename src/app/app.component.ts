@@ -16,8 +16,8 @@ import { RequestType } from './model/query.model';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit{
-  @Select(QueryState.getQueries) queries: Observable<PostRequest[]>;
-  
+  @Select(QueryState.getQueryResults) queryResults$: Observable<PostResult[]>;
+
   api = "http://alkmaar.informatik.uni-mannheim.de/gui2r/gui2r/v1/retrieval";
 
   postRequest: PostRequest = {
@@ -56,16 +56,17 @@ export class AppComponent implements OnInit{
     //_data;
     this.postRequest.query = this.searchForm.get("value").value;
     //let query: Query = {query: this.postRequest.query, requestType: "INITIAL", postRequest: this.postRequest}
-    this.store.dispatch(new AddQuery({query: this.postRequest.query, requestType: RequestType.INITIAL, postRequest: this.postRequest})).subscribe(() =>
-    this.service.post('/api', this.postRequest).subscribe(data => {
-      this.resultsMeta = [...data.results];
+    this.store.dispatch(new AddQuery({query: this.postRequest.query, requestType: RequestType.INITIAL, postRequest: this.postRequest}));
+    this.queryResults$.subscribe(results => {
+      if(!results) return;
+      this.resultsMeta = [];
       console.log("Results: ", this.resultsMeta);
       //_data = data;
 
       this.resultsImages = [];
       this.blobs = [];
 
-      data.results.forEach(result => {
+      results.forEach(result => {
         const index = result.index;
         //this.resultsImages.push(index);
         const url = '/ui/' + index + '.jpg';
@@ -73,23 +74,23 @@ export class AppComponent implements OnInit{
         this.resultsImages.push(url);
       });
 
-      this.resultsMeta = this.combineArrays(this.resultsMeta, this.resultsImages);
-      console.log("updated:", this.resultsMeta)
+      this.resultsMeta = this.combineArrays(results, this.resultsImages);
+      //console.log("updated:", this.resultsMeta)
 
 
 
-      console.log("this.resultsImages", this.resultsImages);
-      console.log("blobs 2", this.blobs);
+      //console.log("this.resultsImages", this.resultsImages);
 
-      if(!data) { 
+      if(!results) {
         console.log("empty data!");
         return
       }
 
       //this.getUIs(data);
       this.searchForm.reset();
-    })
-    );
+    });
+    this.resultsMeta = [];
+    this.resultsImages = [];
     //console.log("this post request:", this.postRequest);
 
     // this.service.post('/api', this.postRequest).subscribe(data => {
@@ -116,7 +117,7 @@ export class AppComponent implements OnInit{
     //   console.log("this.resultsImages", this.resultsImages);
     //   console.log("blobs 2", this.blobs);
 
-    //   if(!data) { 
+    //   if(!data) {
     //     console.log("empty data!");
     //     return
     //   }
@@ -128,7 +129,7 @@ export class AppComponent implements OnInit{
   }
 
   getUIs(data) {
-    if(!data) { 
+    if(!data) {
       console.log("No metadata retrieved from server.");
       return
     };
@@ -146,14 +147,14 @@ export class AppComponent implements OnInit{
         console.log(error);
       });
     });
-  }  
+  }
 
   createImageFromBlob(image: Blob) {
     let reader = new FileReader();
     reader.addEventListener("load", () => {
        this.imageToShow = reader.result;
     }, false);
- 
+
     if (image) {
        reader.readAsDataURL(image);
     }
@@ -164,9 +165,9 @@ export class AppComponent implements OnInit{
   }
 
   combineArrays(a1, a2) {
-    a1 = a1.map((value, index) => 
-        ({firstResult: value,
-        secondResult: a2[index]})
+    a1 = a1.map((value, index) =>
+        ({resultMeta: value,
+         screenURL: a2[index]})
     );
     console.log(a1);
     return a1;

@@ -17,12 +17,12 @@
           <mat-card-header>
             <mat-card-title>{{i+1}}</mat-card-title>
           </mat-card-header>
-          <img mat-card-image src="{{item.secondResult}}">
+          <img mat-card-image src="{{item.screenURL}}">
           <mat-card-content>
             <ul>
-              <li>Rank: {{item.firstResult.rank}} </li>
-              <li>Index: {{item.firstResult.index}} </li>
-              <li>Score: {{item.firstResult.score}} </li>
+              <li>Rank: {{item.resultMeta.rank}} </li>
+              <li>Index: {{item.resultMeta.index}} </li>
+              <li>Score: {{item.resultMeta.score}} </li>
             </ul>
           </mat-card-content>
         </mat-card>
@@ -37,9 +37,9 @@
   <div *ngFor="let item of resultsMeta; index as i" id="results">
     {{i+1}}.
     <ul>
-      <li>Rank: {{item.firstResult.rank}} </li>
-      <li>Index: {{item.firstResult.index}} </li>
-      <li>Score: {{item.firstResult.score}} </li>
+      <li>Rank: {{item.resultMeta.rank}} </li>
+      <li>Index: {{item.resultMeta.index}} </li>
+      <li>Score: {{item.resultMeta.score}} </li>
       <li>
           <img src="{{item.secondResult}}" style="width: 207.5px; height: 368.875px;">
       </li>

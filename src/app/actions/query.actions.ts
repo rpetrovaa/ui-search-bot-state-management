@@ -6,3 +6,7 @@ export class AddQuery {
 
     constructor(public payload: Query) {}
 }
+
+export class AddInitialRequestType {
+    static readonly type = '[INITIALREQUESTTYPE] Add'
+}
