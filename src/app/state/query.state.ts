@@ -1,19 +1,20 @@
 import { Injectable } from '@angular/core';
 import { Action, Selector, State, StateContext } from '@ngxs/store';
 import { AddInitialRequestType, AddQuery } from '../actions/query.actions';
-import { PostRequest, PostResult } from '../classes/post';
 import { Query, QueryResult, RequestType } from '../model/query.model';
 import { Gui2wireApiService } from '../services/gui2wire-api.service';
 import { tap, take } from 'rxjs/operators'; 
 
 export class QueryStateModel {
     queries: QueryResult[];
+    counter: number;
 }
 
 @State<QueryStateModel>({
     name: "queries",
     defaults: {
-        queries: []
+        queries: [],
+        counter: 0
     }
 })
 @Injectable()
@@ -34,10 +35,15 @@ export class QueryState {
         const state = getState();
         return this.queryService.post('/api', payload.postRequest).pipe(take(1),tap((result) => {
             if(!result) return;
+            let type = RequestType.ADDITIVE;
+            if(state.counter == 0) {
+                type = RequestType.INITIAL;
+            }
             setState({
                 queries: [ ...state.queries,
-                            {query: {query: payload.query, requestType: RequestType.INITIAL, postRequest: payload.postRequest}, result: result.results},
-                         ]
+                            {query: {query: payload.query, requestType: type, postRequest: payload.postRequest}, result: result.results},
+                         ],
+                counter: state.counter += 1
             });
           }));
     }
@@ -49,7 +55,7 @@ export class QueryState {
     //         ...state,
     //         queries:
     //     });
-    //}
+    // }
 
     // @Action(SetRequestType)
     // setRequestType({getState, setState}: StateContext<QueryStateModel>, { payload }: SetRequestType) {

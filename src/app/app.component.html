@@ -1,11 +1,11 @@
-<h1>Post Results</h1>
+<h1 style="margin-left: 50px;">Search GUIs</h1>
 <div *ngIf="searchForm">
   <form [formGroup]="searchForm" novalidate>
-    <mat-form-field>
+    <mat-form-field appearance="outline" style="margin-left: 50px; width: 300px;">
       <mat-label>Search Request</mat-label>
-      <input matInput placeholder="Enter request" formControlName="value">
+      <input matInput placeholder="Enter User Requirement or User Story" formControlName="value">
     </mat-form-field>
-    <button (click)="sendRequest()">Load</button>
+    <button mat-raised-button color="grey" style="margin-left: 10px; height: 1.0cm;" (click)="sendRequest()">Search</button>
   </form>
 </div>
 <div *ngIf="resultsMeta" id="main">
