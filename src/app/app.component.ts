@@ -58,10 +58,10 @@ export class AppComponent implements OnInit{
     const test = this.store.dispatch(new AddQuery({query: this.postRequest.query, requestType: RequestType.INITIAL, postRequest: this.postRequest}));
     test.subscribe((x) => console.log("x", x));
     this.queryResults$.subscribe(results => {
-      console.log("small results", results);
+      //console.log("small results", results);
       if(!results) return;
       this.resultsMeta = [];
-      console.log("Results: ", this.resultsMeta);
+      //console.log("Results: ", this.resultsMeta);
 
       this.resultsImages = [];
       this.blobs = [];
@@ -69,10 +69,9 @@ export class AppComponent implements OnInit{
       const primary = [];
 
       results.forEach(result => {
-        console.log("RES",result.result);
-        
+        //console.log("RES",result.result);
         result.result.forEach(element => {
-          console.log(element);
+          //console.log(element);
           const index = element.index;
           const url = '/ui/' + index + '.jpg';
           primary.push(element);
@@ -86,11 +85,6 @@ export class AppComponent implements OnInit{
 
       if(!this.resultsMeta && !primary && !this.resultsImages) return;
       this.resultsMeta = this.combineArrays(primary, this.resultsImages);
-      
-      if(!results) {
-        console.log("empty data!");
-        return
-      }
 
       this.searchForm.reset();
     });
@@ -107,7 +101,7 @@ export class AppComponent implements OnInit{
     data.results.forEach(result => {
       const index = result.index;
       const url = '/ui/' + index + '.jpg';
-      console.log("URL: ", url);
+      //console.log("URL: ", url);
       this.service.get(url).subscribe(data => {
         this.resultsImages.push(this.createImageFromBlob(data));
         this.isImageLoading = false;
@@ -138,7 +132,7 @@ export class AppComponent implements OnInit{
         ({resultMeta: value,
          screenURL: a2[index]})
     );
-    console.log(a1);
+    //console.log(a1);
     return a1;
   }
 
