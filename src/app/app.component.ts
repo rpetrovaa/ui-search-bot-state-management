@@ -7,7 +7,7 @@ import { QueryState, QueryStateModel } from './state/query.state';
 import { Observable } from 'rxjs';
 import {Select, Store} from '@ngxs/store';
 import { INITIAL_STATE_TOKEN } from '@ngxs/store/internals';
-import { RequestType } from './model/query.model';
+import { QueryResult, RequestType } from './model/query.model';
 
 
 @Component({
@@ -16,7 +16,7 @@ import { RequestType } from './model/query.model';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit{
-  @Select(QueryState.getQueryResults) queryResults$: Observable<PostResult[]>;
+  @Select(QueryState.getQueryResults) queryResults$: Observable<any[]>;
 
   api = "http://alkmaar.informatik.uni-mannheim.de/gui2r/gui2r/v1/retrieval";
 
@@ -55,77 +55,47 @@ export class AppComponent implements OnInit{
   sendRequest() {
     //_data;
     this.postRequest.query = this.searchForm.get("value").value;
-    //let query: Query = {query: this.postRequest.query, requestType: "INITIAL", postRequest: this.postRequest}
-    this.store.dispatch(new AddQuery({query: this.postRequest.query, requestType: RequestType.INITIAL, postRequest: this.postRequest}));
+    const test = this.store.dispatch(new AddQuery({query: this.postRequest.query, requestType: RequestType.INITIAL, postRequest: this.postRequest}));
+    test.subscribe((x) => console.log("x", x));
     this.queryResults$.subscribe(results => {
+      console.log("small results", results);
       if(!results) return;
       this.resultsMeta = [];
       console.log("Results: ", this.resultsMeta);
-      //_data = data;
 
       this.resultsImages = [];
       this.blobs = [];
 
+      const primary = [];
+
       results.forEach(result => {
-        const index = result.index;
-        //this.resultsImages.push(index);
-        const url = '/ui/' + index + '.jpg';
-        // console.log("URL: ", url);
-        this.resultsImages.push(url);
+        console.log("RES",result.result);
+        
+        result.result.forEach(element => {
+          console.log(element);
+          const index = element.index;
+          const url = '/ui/' + index + '.jpg';
+          primary.push(element);
+          this.resultsImages.push(url);
+        });
+
+        //const index = result.result.index;
+        // const url = '/ui/' + index + '.jpg';
+        // this.resultsImages.push(url);
       });
 
-      this.resultsMeta = this.combineArrays(results, this.resultsImages);
-      //console.log("updated:", this.resultsMeta)
-
-
-
-      //console.log("this.resultsImages", this.resultsImages);
-
+      if(!this.resultsMeta && !primary && !this.resultsImages) return;
+      this.resultsMeta = this.combineArrays(primary, this.resultsImages);
+      
       if(!results) {
         console.log("empty data!");
         return
       }
 
-      //this.getUIs(data);
       this.searchForm.reset();
     });
     this.resultsMeta = [];
     this.resultsImages = [];
-    //console.log("this post request:", this.postRequest);
-
-    // this.service.post('/api', this.postRequest).subscribe(data => {
-    //   this.resultsMeta = [...data.results];
-    //   console.log("Results: ", this.resultsMeta);
-    //   //_data = data;
-
-    //   this.resultsImages = [];
-    //   this.blobs = [];
-
-    //   data.results.forEach(result => {
-    //     const index = result.index;
-    //     //this.resultsImages.push(index);
-    //     const url = '/ui/' + index + '.jpg';
-    //     // console.log("URL: ", url);
-    //     this.resultsImages.push(url);
-    //   });
-
-    //   this.resultsMeta = this.combineArrays(this.resultsMeta, this.resultsImages);
-    //   console.log("updated:", this.resultsMeta)
-
-
-
-    //   console.log("this.resultsImages", this.resultsImages);
-    //   console.log("blobs 2", this.blobs);
-
-    //   if(!data) {
-    //     console.log("empty data!");
-    //     return
-    //   }
-
-    //   //this.getUIs(data);
-    //   this.searchForm.reset();
-    // });
-    // return _data;
   }
 
   getUIs(data) {
@@ -136,7 +106,6 @@ export class AppComponent implements OnInit{
 
     data.results.forEach(result => {
       const index = result.index;
-      //this.resultsImages.push(index);
       const url = '/ui/' + index + '.jpg';
       console.log("URL: ", url);
       this.service.get(url).subscribe(data => {
