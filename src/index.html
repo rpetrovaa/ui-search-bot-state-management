@@ -2,29 +2,53 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>StateManagement</title>
+  <title>State Management</title>
   <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500&display=swap" rel="stylesheet">
+  
+  <!--Let browser know website is optimized for mobile-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!--Import Google Icon Font-->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Raleway:500&display=swap" rel="stylesheet">
+
+  <!--Import Font Awesome Icon Font-->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
   <app-root></app-root>
-  <div id="webchat"></div>
-  <script src="https://cdn.jsdelivr.net/npm/rasa-webchat/lib/index.min.js"></script>
-    <!-- // you can add a version tag if you need, e.g for version 0.11.5 https://cdn.jsdelivr.net/npm/rasa-webchat@0.11.5/lib/index.min.js -->
-  <script>
-    WebChat.default.init({
-      selector: "#webchat",
-      initPayload: "/get_started",
-      customData: {"language": "en"}, // arbitrary custom data. Stay minimal as this will be added to the socket
-      socketUrl: "http://localhost:5005",
-      socketPath: "/socket.io/",
-      title: "UI Search Bot",
-      subtitle: "Subtitle",
-      params: {"storage": "session"} // can be set to "local"  or "session". details in storage section.
-    })
-  </script>
+  <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> -->
+  <div class="container">
+
+    <div class="widget">
+      <div class="chat_header">
+         <!--Add the name of the bot here -->
+         <span style="color:white;margin-left: 5px;">UI Search Bot </span>
+         <span style="color:white;margin-right: 5px;float:right;margin-top: 5px;" id="close">
+         <i class="material-icons">close</i>
+         </span>
+      </div>
+      <!--Chatbot contents goes here -->
+      <div class="chats" id="chats">
+         <div class="clearfix"></div>
+      </div>
+      <!--user typing indicator -->
+      <div class="keypad" >
+         <!-- <input type="text" id="keypad" class="usrInput browser-default" placeholder="Type a message..." autocomplete="off"> -->
+         <textarea id="userInput" placeholder="Type a message..." class="usrInput"></textarea>
+         <div id="sendButton"><i class="fa fa-paper-plane" aria-hidden="true"></i></div>
+      </div>
+   </div>
+   <!--bot widget -->
+   <div class="profile_div" id="profile_div">
+      <img class="imgProfile" src="assets/img/botAvatar.png"/>
+   </div>
+
+  </div>
+
+  <!--JavaScript at end of body for optimized loading-->
+  <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> -->
 </body>
 </html>
