@@ -17,6 +17,7 @@ import { AppComponent } from './app.component';
 import { Gui2wireApiService } from './services/gui2wire-api.service';
 import { QueryState } from './state/query.state';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { ChatbotComponent } from './chatbot/chatbot/chatbot.component';
 
 @NgModule({
   imports: [
@@ -37,6 +38,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
   ],
   declarations: [
     AppComponent,
+    ChatbotComponent,
   ],
   providers: [Gui2wireApiService],
   bootstrap: [AppComponent]

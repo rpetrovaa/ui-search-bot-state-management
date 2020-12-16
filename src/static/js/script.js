@@ -1,11 +1,11 @@
 //Bot pop-up intro
-document.addEventListener('DOMContentLoaded', function() {
-    var elemsTap = document.querySelector('.tap-target');
-    var instancesTap = M.TapTarget.init(elemsTap, {});
-    instancesTap.open();
-    setTimeout(function() { instancesTap.close(); }, 4000);
+// document.addEventListener('DOMContentLoaded', function() {
+//     var elemsTap = document.querySelector('.tap-target');
+//     var instancesTap = M.TapTarget.init(elemsTap, {});
+//     instancesTap.open();
+//     setTimeout(function() { instancesTap.close(); }, 4000);
 
-});
+// });
 
 
 //initialization
@@ -41,8 +41,6 @@ function restartConversation() {
     $("#userInput").prop('disabled', true);
     //destroy the existing chart
     $('.collapsible').remove();
-
-    if (typeof chatChart !== 'undefined') { chatChart.destroy(); }
 
     $(".chart-container").remove();
     if (typeof modalChart !== 'undefined') { modalChart.destroy(); }
@@ -91,7 +89,6 @@ $(".usrInput").on("keyup keypress", function(e) {
         } else {
             //destroy the existing chart, if yu are not using charts, then comment the below lines
             $('.collapsible').remove();
-            if (typeof chatChart !== 'undefined') { chatChart.destroy(); }
 
             $(".chart-container").remove();
             if (typeof modalChart !== 'undefined') { modalChart.destroy(); }
@@ -116,12 +113,6 @@ $("#sendButton").on("click", function(e) {
         e.preventDefault();
         return false;
     } else {
-        //destroy the existing chart
-
-        chatChart.destroy();
-        $(".chart-container").remove();
-        if (typeof modalChart !== 'undefined') { modalChart.destroy(); }
-
         $(".suggestions").remove();
         $("#paginated_cards").remove();
         $(".quickReplies").remove();
@@ -609,114 +600,4 @@ function createCollapsible(data) {
     // initialize the collapsible
     $('.collapsible').collapsible();
     scrollToBottomOfResults();
-}
-
-
-//====================================== creating Charts ======================================
-
-//function to create the charts & render it to the canvas
-function createChart(title, labels, backgroundColor, chartsData, chartType, displayLegend) {
-
-    //create the ".chart-container" div that will render the charts in canvas as required by charts.js,
-    // for more info. refer: https://www.chartjs.org/docs/latest/getting-started/usage.html
-    var html = '<div class="chart-container"> <span class="modal-trigger" id="expand" title="expand" href="#modal1"><i class="fa fa-external-link" aria-hidden="true"></i></span> <canvas id="chat-chart" ></canvas> </div> <div class="clearfix"></div>'
-    $(html).appendTo('.chats');
-
-    //create the context that will draw the charts over the canvas in the ".chart-container" div
-    var ctx = $('#chat-chart');
-
-    // Once you have the element or context, instantiate the chart-type by passing the configuration,
-    //for more info. refer: https://www.chartjs.org/docs/latest/configuration/
-    var data = {
-        labels: labels,
-        datasets: [{
-            label: title,
-            backgroundColor: backgroundColor,
-            data: chartsData,
-            fill: false
-        }]
-    };
-    var options = {
-        title: {
-            display: true,
-            text: title
-        },
-        layout: {
-            padding: {
-                left: 5,
-                right: 0,
-                top: 0,
-                bottom: 0
-            }
-        },
-        legend: {
-            display: displayLegend,
-            position: "right",
-            labels: {
-                boxWidth: 5,
-                fontSize: 10
-            }
-        }
-    }
-
-    //draw the chart by passing the configuration
-    chatChart = new Chart(ctx, {
-        type: chartType,
-        data: data,
-        options: options
-    });
-
-    scrollToBottomOfResults();
-}
-
-// on click of expand button, get the chart data from gloabl variable & render it to modal
-$(document).on("click", "#expand", function() {
-
-    //the parameters are declared gloabally while we get the charts data from rasa.
-    createChartinModal(title, labels, backgroundColor, chartsData, chartType, displayLegend)
-});
-
-//function to render the charts in the modal
-function createChartinModal(title, labels, backgroundColor, chartsData, chartType, displayLegend) {
-    //if you want to display the charts in modal, make sure you have configured the modal in index.html
-    //create the context that will draw the charts over the canvas in the "#modal-chart" div of the modal
-    var ctx = $('#modal-chart');
-
-    // Once you have the element or context, instantiate the chart-type by passing the configuration,
-    //for more info. refer: https://www.chartjs.org/docs/latest/configuration/
-    var data = {
-        labels: labels,
-        datasets: [{
-            label: title,
-            backgroundColor: backgroundColor,
-            data: chartsData,
-            fill: false
-        }]
-    };
-    var options = {
-        title: {
-            display: true,
-            text: title
-        },
-        layout: {
-            padding: {
-                left: 5,
-                right: 0,
-                top: 0,
-                bottom: 0
-            }
-        },
-        legend: {
-            display: displayLegend,
-            position: "right"
-        },
-
-    }
-
-    modalChart = new Chart(ctx, {
-        type: chartType,
-        data: data,
-        options: options
-    });
-
 }
