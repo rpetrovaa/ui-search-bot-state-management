@@ -1,16 +1,18 @@
 <h1 style="margin-left: 50px;">Search GUIs</h1>
-<div *ngIf="searchForm">
-  <form [formGroup]="searchForm" novalidate>
-    <mat-form-field appearance="outline" style="margin-left: 50px; width: 300px;">
-      <mat-label>Search Request</mat-label>
-      <input matInput placeholder="Enter User Requirement or User Story" formControlName="value">
-    </mat-form-field>
-    <button mat-raised-button color="grey" style="margin-left: 10px; height: 1.0cm;" (click)="sendRequest()">Search</button>
-  </form>
-</div>
-<div *ngIf="resultsMeta" id="main">
-  <!-- <div *ngFor="let item of resultsMeta; index as i" id="results"> -->
 
+<div *ngIf="mode_searchUI">
+  <div *ngIf="searchForm">
+    <form [formGroup]="searchForm" novalidate>
+      <mat-form-field appearance="outline" style="margin-left: 50px; width: 300px;">
+        <mat-label>Search Request</mat-label>
+        <input matInput placeholder="Enter User Requirement or User Story" formControlName="value">
+      </mat-form-field>
+      <button mat-raised-button color="grey" style="margin-left: 10px; height: 1.0cm;" (click)="sendRequest()">Search</button>
+    </form>
+  </div>
+</div>
+
+<div *ngIf="resultsMeta" id="main">
     <mat-grid-list cols="3" rowHeight="600px">
       <mat-grid-tile *ngFor="let item of resultsMeta; index as i" id="results">
         <mat-card class="example-card">
@@ -28,33 +30,6 @@
         </mat-card>
       </mat-grid-tile>
     </mat-grid-list>
-
-  <!-- </div> -->
 </div>
 
-<app-chatbot></app-chatbot>
-
-
-<!-- <div *ngIf="resultsMeta" id="main">
-  <div *ngFor="let item of resultsMeta; index as i" id="results">
-    {{i+1}}.
-    <ul>
-      <li>Rank: {{item.resultMeta.rank}} </li>
-      <li>Index: {{item.resultMeta.index}} </li>
-      <li>Score: {{item.resultMeta.score}} </li>
-      <li>
-          <img src="{{item.secondResult}}" style="width: 207.5px; height: 368.875px;">
-      </li>
-    </ul>
-  </div>
-</div> -->
-
-<!-- OLD -->
-<!-- <h3>Images</h3>
-<img [src]="imageToShow"
-     alt="Place image title"
-     *ngIf="!isImageLoading; else noImageFound"
-     style="width: 50px; height: 100px;">
-<ng-template #noImageFound>
-     <img src="fallbackImage.png" alt="Fallbackimage">
-</ng-template> -->
+<app-chatbot *ngIf="mode_chatbot"></app-chatbot>

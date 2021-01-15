@@ -1,11 +1,14 @@
 import { Component, OnInit } from '@angular/core';
-//import * as $ from 'jquery';
 
 declare var $: any;
-
 import 'jqueryui';
 
-import { ChangeDetectorRef } from '@angular/core';
+import { PostRequestService } from 'src/app/services/post-request.service';
+import { PostRequest } from 'src/app/classes/post';
+import { SetStateService } from 'src/app/services/set-state.service';
+import { Select, Store } from '@ngxs/store';
+import { QueryState } from 'src/app/state/query.state';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-chatbot',
@@ -13,23 +16,49 @@ import { ChangeDetectorRef } from '@angular/core';
   styleUrls: ['./chatbot.component.css'],
 })
 export class ChatbotComponent implements OnInit {
-  // action_name;
-  // user_id
+  postRequest: PostRequest = null;
+  request: PostRequest;
+  requestNegative: PostRequest;
+  message: any;
+  lastResults;
+  @Select(QueryState.getLastQuery) lastQuery$: Observable<any[]>;
 
-  constructor(private ref: ChangeDetectorRef) {}
+  constructor(
+    private postRequestService: PostRequestService,
+    private setStateService: SetStateService
+  ) {
+    this.postRequest = this.postRequestService.createPostRequest(
+      'initial test'
+    );
+    console.log(this.postRequest);
+
+    this.setStateService.request.subscribe((request) => {
+      //console.log('subscribing');
+      this.request = request;
+      //console.log('Request after subscribe', this.request);
+    });
+
+    this.setStateService.requestNegative.subscribe((requestNegative) => {
+      //console.log('subscribing to negative request');
+      this.requestNegative = requestNegative;
+      //console.log('NEGATIVE Request after subscribe', this.requestNegative);
+    });
+
+    this.lastQuery$.subscribe((results) => (this.lastResults = results));
+    //console.log('LAST RESULTS IN CHATBOT COMPONENT', this.lastResults);
+    //this.lastResults = [];
+  }
 
   ngOnInit() {
-    //Bot pop-up intro
-    // document.addEventListener('DOMContentLoaded', function() {
-    //     var elemsTap = document.querySelector('.tap-target');
-    //     var instancesTap = M.TapTarget.init(elemsTap, {});
-    //     instancesTap.open();
-    //     setTimeout(function() { instancesTap.close(); }, 4000);
-
-    // });
-
     //initialization
     //$(document).ready(function() {
+    console.log('request', this.postRequest);
+    console.log('service', this.postRequestService);
+
+    let postRequest = this.postRequest;
+    let postRequestService = this.postRequestService;
+    let setStateServiceLocal = this.setStateService;
+    console.log('set state service in global scope', setStateServiceLocal);
 
     //Bot pop-up intro
     $('div').removeClass('tap-target-origin');
@@ -46,7 +75,10 @@ export class ChatbotComponent implements OnInit {
 
     //global variables
     let action_name = 'action_greet_user';
-    let user_id = 'jitesh97';
+    let user_id = 'radost';
+    let requestGlobal = this.request;
+    let messageGlobal = this.message;
+    let requestGlobalNegatve = this.requestNegative;
 
     //if you want the bot to start the conversation
     // action_trigger();
@@ -169,14 +201,19 @@ export class ChatbotComponent implements OnInit {
 
     //============== send the user message to rasa server =============================================
     function send(message) {
+      console.log('this message', message);
+
       $.ajax({
         url: 'http://localhost:5005/webhooks/rest/webhook',
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify({ message: message, sender: user_id }),
+
         success: function (botResponse, status) {
           console.log(
-            'Response from Rasa: ',
+            'message:',
+            message,
+            '\nResponse from Rasa: ',
             botResponse,
             '\nStatus: ',
             status
@@ -190,6 +227,9 @@ export class ChatbotComponent implements OnInit {
             // action_trigger();
             return;
           }
+
+          messageGlobal = message;
+
           setBotResponse(botResponse);
         },
         error: function (xhr, textStatus, errorThrown) {
@@ -209,13 +249,16 @@ export class ChatbotComponent implements OnInit {
 
     //=================== set bot response in the chats ===========================================
     function setBotResponse(response) {
+      console.log('checking this.request', requestGlobal);
+
       //display bot response after 500 milliseconds
       setTimeout(function () {
         hideBotTyping();
         if (response.length < 1) {
           //if there is no response from Rasa, send  fallback message to the user
           var fallbackMsg =
-            'I am facing some issues, please try again later!!!';
+            "Sorry, I didn't get that. Could you please rephase?";
+          // 'I am facing some issues, please try again later!!!';
 
           var BotResponse =
             '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
@@ -227,6 +270,7 @@ export class ChatbotComponent implements OnInit {
         } else {
           //if we get response from Rasa
           for (let i = 0; i < response.length; i++) {
+            console.log('bot response:', response);
             //check if the response contains "text"
             if (response[i].hasOwnProperty('text')) {
               var BotResponse =
@@ -252,31 +296,12 @@ export class ChatbotComponent implements OnInit {
               addSuggestion(response[i].buttons);
             }
 
-            //check if the response contains "attachment"
-            if (response[i].hasOwnProperty('attachment')) {
-              //check if the attachment type is "video"
-              if (response[i].attachment.type == 'video') {
-                const video_url = response[i].attachment.payload.src;
-
-                var BotResponse =
-                  '<div class="video-container"> <iframe src="' +
-                  video_url +
-                  '" frameborder="0" allowfullscreen></iframe> </div>';
-                $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
-              }
-            }
             //check if the response contains "custom" message
             if (response[i].hasOwnProperty('custom')) {
               //check if the custom payload type is "quickReplies"
               if (response[i].custom.payload == 'quickReplies') {
                 const quickRepliesData = response[i].custom.data;
                 showQuickReplies(quickRepliesData);
-                return;
-              }
-
-              //check if the custom payload type is "pdf_attachment"
-              if (response[i].custom.payload == 'pdf_attachment') {
-                renderPdfAttachment(response[i]);
                 return;
               }
 
@@ -287,46 +312,68 @@ export class ChatbotComponent implements OnInit {
                 return;
               }
 
-              //check if the custom payload type is "location"
-              if (response[i].custom.payload == 'location') {
-                $('#userInput').prop('disabled', true);
-                getLocation();
-                scrollToBottomOfResults();
-                return;
+              //check of the custom payload type is "query"
+              if (response[i].custom.payload == 'query') {
+                if (!messageGlobal) {
+                  console.log('messageGlobal still undefined and returning');
+                  return;
+                }
+
+                requestGlobal = postRequestService.createPostRequest(
+                  messageGlobal
+                );
+
+                if (!requestGlobal) {
+                  console.log('still undefined and returning');
+                  return;
+                }
+
+                let addQuery = setStateServiceLocal.setAction(requestGlobal);
+                console.log(
+                  'set state service in local scope',
+                  setStateServiceLocal,
+                  addQuery
+                );
+
+                var BotResponse =
+                  '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
+                  response[i].custom.data.text +
+                  '</p><div class="clearfix"></div>';
+                $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
               }
 
-              //check if the custom payload type is "cardsCarousel"
-              if (response[i].custom.payload == 'cardsCarousel') {
-                const restaurantsData = response[i].custom.data;
-                showCardsCarousel(restaurantsData);
-                return;
-              }
+              //check of the custom payload type is "query"
+              if (response[i].custom.payload == 'query_negative') {
+                if (!messageGlobal) {
+                  console.log('messageGlobal still undefined and returning');
+                  return;
+                }
 
-              //check if the custom payload type is "chart"
-              if (response[i].custom.payload == 'chart') {
-                // sample format of the charts data:
-                // var chartData = { "title": "Leaves", "labels": ["Sick Leave", "Casual Leave", "Earned Leave", "Flexi Leave"], "backgroundColor": ["#36a2eb", "#ffcd56", "#ff6384", "#009688", "#c45850"], "chartsData": [5, 10, 22, 3], "chartType": "pie", "displayLegend": "true" }
+                requestGlobalNegatve = postRequestService.createPostRequest(
+                  messageGlobal
+                );
 
-                //store the below parameters as global variable,
-                // so that it can be used while displaying the charts in modal.
-                const chartData = response[i].custom.data;
-                const title = chartData.title;
-                const labels = chartData.labels;
-                const backgroundColor = chartData.backgroundColor;
-                const chartsData = chartData.chartsData;
-                const chartType = chartData.chartType;
-                const displayLegend = chartData.displayLegend;
+                if (!requestGlobalNegatve) {
+                  console.log('still undefined and returning');
+                  return;
+                }
 
-                // pass the above variable to createChart function
-                //createChart(title, labels, backgroundColor, chartsData, chartType, displayLegend)
-                return;
-              }
+                let addQueryNegative = setStateServiceLocal.setActionNegative(
+                  requestGlobalNegatve
+                );
+                console.log(
+                  'set state service in local scope',
+                  setStateServiceLocal,
+                  addQueryNegative
+                );
 
-              //check of the custom payload type is "collapsible"
-              if (response[i].custom.payload == 'collapsible') {
-                const data = response[i].custom.data;
-                //pass the data variable to createCollapsible function
-                createCollapsible(data);
+                //CONTINUE FROM HERE. YOU NEED TO IMPLEMENT THE SET DIFFERENCE NOW
+
+                var BotResponse =
+                  '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
+                  response[i].custom.data.text +
+                  '</p><div class="clearfix"></div>';
+                $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
               }
             }
           }
@@ -340,27 +387,6 @@ export class ChatbotComponent implements OnInit {
       $('.profile_div').toggle();
       $('.widget').toggle();
     });
-
-    //====================================== Render Pdf attachment =======================================
-    function renderPdfAttachment(data) {
-      const pdf_url = data.custom.url;
-      const pdf_title = data.custom.title;
-      const pdf_attachment =
-        '<div class="pdf_attachment">' +
-        '<div class="row">' +
-        '<div class="col s3 pdf_icon"><i class="fa fa-file-pdf-o" aria-hidden="true"></i></div>' +
-        '<div class="col s9 pdf_link">' +
-        '<a href="' +
-        pdf_url +
-        '" target="_blank">' +
-        pdf_title +
-        ' </a>' +
-        '</div>' +
-        '</div>' +
-        '</div>';
-      $('.chats').append(pdf_attachment);
-      scrollToBottomOfResults();
-    }
 
     //====================================== DropDown ==================================================
     //render the dropdown messageand handle user selection
@@ -455,51 +481,6 @@ export class ChatbotComponent implements OnInit {
       $('.widget').toggle();
       scrollToBottomOfResults();
     });
-
-    //====================================== Cards Carousel =========================================
-
-    function showCardsCarousel(cardsToAdd) {
-      var cards = createCardsCarousel(cardsToAdd);
-
-      $(cards).appendTo('.chats').show();
-
-      if (cardsToAdd.length <= 2) {
-        $('.cards_scroller>div.carousel_cards:nth-of-type(' + i + ')').fadeIn(
-          3000
-        );
-      } else {
-        for (var i = 0; i < cardsToAdd.length; i++) {
-          $('.cards_scroller>div.carousel_cards:nth-of-type(' + i + ')').fadeIn(
-            3000
-          );
-        }
-        $('.cards .arrow.prev').fadeIn('3000');
-        $('.cards .arrow.next').fadeIn('3000');
-      }
-
-      scrollToBottomOfResults();
-
-      const card = document.querySelector('#paginated_cards');
-      const card_scroller = card.querySelector('.cards_scroller');
-      var card_item_size = 225;
-
-      card
-        .querySelector('.arrow.next')
-        .addEventListener('click', scrollToNextPage);
-      card
-        .querySelector('.arrow.prev')
-        .addEventListener('click', scrollToPrevPage);
-
-      // For paginated scrolling, simply scroll the card one item in the given
-      // direction and let css scroll snaping handle the specific alignment.
-      function scrollToNextPage() {
-        card_scroller.scrollBy(card_item_size, 0);
-      }
-
-      function scrollToPrevPage() {
-        card_scroller.scrollBy(-card_item_size, 0);
-      }
-    }
 
     function createCardsCarousel(cardsData) {
       var cards = '';
@@ -599,61 +580,6 @@ export class ChatbotComponent implements OnInit {
       $('.quickReplies').remove();
     });
 
-    //====================================== Get User Location ==================================================
-    function getLocation() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          getUserPosition,
-          handleLocationAccessError
-        );
-      } else {
-        const response = 'Geolocation is not supported by this browser.';
-      }
-    }
-
-    function getUserPosition(position) {
-      let response =
-        'Latitude: ' +
-        position.coords.latitude +
-        ' Longitude: ' +
-        position.coords.longitude;
-      console.log('location: ', response);
-
-      //here you add the intent which you want to trigger
-      response =
-        '/inform{"latitude":' +
-        position.coords.latitude +
-        ',"longitude":' +
-        position.coords.longitude +
-        '}';
-      $('#userInput').prop('disabled', false);
-      send(response);
-      showBotTyping();
-    }
-
-    function handleLocationAccessError(error) {
-      switch (error.code) {
-        case error.PERMISSION_DENIED:
-          console.log('User denied the request for Geolocation.');
-          break;
-        case error.POSITION_UNAVAILABLE:
-          console.log('Location information is unavailable.');
-          break;
-        case error.TIMEOUT:
-          console.log('The request to get user location timed out.');
-          break;
-        case error.UNKNOWN_ERROR:
-          console.log('An unknown error occurred.');
-          break;
-      }
-
-      const response = '/inform{"user_location":"deny"}';
-      send(response);
-      showBotTyping();
-      $('.usrInput').val('');
-      $('#userInput').prop('disabled', false);
-    }
-
     //======================================bot typing animation ======================================
     function showBotTyping() {
       var botTyping =
@@ -670,34 +596,6 @@ export class ChatbotComponent implements OnInit {
     function hideBotTyping() {
       $('#botAvatar').remove();
       $('.botTyping').remove();
-    }
-
-    //====================================== Collapsible =========================================
-
-    // function to create collapsible,
-    // for more info refer:https://materializecss.com/collapsible.html
-    function createCollapsible(data) {
-      //sample data format:
-      //var data=[{"title":"abc","description":"xyz"},{"title":"pqr","description":"jkl"}]
-      let list = '';
-      for (let i = 0; i < data.length; i++) {
-        const item =
-          '<li>' +
-          '<div class="collapsible-header">' +
-          data[i].title +
-          '</div>' +
-          '<div class="collapsible-body"><span>' +
-          data[i].description +
-          '</span></div>' +
-          '</li>';
-        list += item;
-      }
-      var contents = '<ul class="collapsible">' + list + '</uL>';
-      $(contents).appendTo('.chats');
-
-      // initialize the collapsible
-      (<any>$('.collapsible')).collapsible();
-      scrollToBottomOfResults();
     }
   }
 }

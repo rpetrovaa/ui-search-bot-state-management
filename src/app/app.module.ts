@@ -1,5 +1,5 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { CommonModule } from '@angular/common';  
+import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -18,6 +18,8 @@ import { Gui2wireApiService } from './services/gui2wire-api.service';
 import { QueryState } from './state/query.state';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ChatbotComponent } from './chatbot/chatbot/chatbot.component';
+import { PostRequestService } from './services/post-request.service';
+import { SetStateService } from './services/set-state.service';
 
 @NgModule({
   imports: [
@@ -26,7 +28,7 @@ import { ChatbotComponent } from './chatbot/chatbot/chatbot.component';
     HttpClientModule,
     FormsModule,
     ReactiveFormsModule,
-    MatInputModule,  
+    MatInputModule,
     MatFormFieldModule,
     MatButtonModule,
     MatGridListModule,
@@ -34,13 +36,10 @@ import { ChatbotComponent } from './chatbot/chatbot/chatbot.component';
     NgxsModule.forRoot([QueryState]),
     NgxsReduxDevtoolsPluginModule.forRoot(),
     NgxsLoggerPluginModule.forRoot(),
-    BrowserAnimationsModule
+    BrowserAnimationsModule,
   ],
-  declarations: [
-    AppComponent,
-    ChatbotComponent,
-  ],
-  providers: [Gui2wireApiService],
-  bootstrap: [AppComponent]
+  declarations: [AppComponent, ChatbotComponent],
+  providers: [Gui2wireApiService, PostRequestService, SetStateService],
+  bootstrap: [AppComponent],
 })
-export class AppModule { }
+export class AppModule {}

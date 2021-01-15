@@ -1,34 +1,44 @@
 import { Injectable } from '@angular/core';
 import { PostRequest } from '../classes/post';
-import { IState } from '../state/model/i-state';
-import { Gui2wireApiService } from './gui2wire-api.service';
+import { AddQuery } from '../actions/query.actions';
+import { RequestType } from '../model/query.model';
+import { BehaviorSubject } from 'rxjs';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable()
 export class SetStateService {
+  constructor() {}
 
-  state: IState;
-  connectService;
-  postRequest: PostRequest = {
-    query: "login",
-    method: "bm25okapi",
-    qe_method:"",
-    max_results: 8
-  };
-  prevState: IState = {query: this.postRequest.query, request_type: RequestType.INITIAL }
+  private postRequest$ = new BehaviorSubject<PostRequest>(null);
+  private postRequestNegative$ = new BehaviorSubject<PostRequest>(null);
+  request = this.postRequest$.asObservable();
+  requestNegative = this.postRequestNegative$.asObservable();
 
-  constructor(connectService: Gui2wireApiService) { 
-    this.connectService = connectService;
+  setAction(postRequest: PostRequest) {
+    this.postRequest$.next(postRequest);
   }
 
-  setState(prevState: IState, newState: IState){
-    this.connectService.post('/api', this.postRequest).subscribe(data => console.log(data));
-    prevState.query;
-
-
+  setActionNegative(postRequest: PostRequest) {
+    this.postRequestNegative$.next(postRequest);
   }
 
-  
-  
+  getAction() {
+    let value = this.postRequest$.getValue();
+    console.log(value);
+    if (!value) {
+      console.log('it is in undefied if condition');
+      return;
+    }
+
+    console.log('in get action, the global post request is', this.postRequest$);
+
+    let action = new AddQuery({
+      query: value.query,
+      requestType: RequestType.INITIAL,
+      postRequest: value,
+    });
+
+    console.log('getting action', action);
+
+    return action;
+  }
 }
