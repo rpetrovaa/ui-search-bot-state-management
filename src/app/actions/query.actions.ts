@@ -1,3 +1,4 @@
+import { PostResult } from '../classes/post';
 import { Query } from '../model/query.model';
 
 export class AddQuery {
@@ -6,10 +7,28 @@ export class AddQuery {
   constructor(public payload: Query) {}
 }
 
-export class AddNegativeQuery {
-  static readonly type = '[QUERY] Add Negative';
+export class AddNegativeQueryBeforeDiff {
+  static readonly type = '[QUERY] Add Negative B4 Diff';
 
   constructor(public payload: Query) {}
+}
+
+export class AddNegativeQueryAfterDiff {
+  static readonly type = '[QUERY] Add Negative After Diff';
+
+  constructor(public query: Query, public result: PostResult[]) {}
+}
+
+export class AddExtendedQueryBeforeIntersect {
+  static readonly type = '[QUERY] Add Extended B4 Intersect';
+
+  constructor(public payload: Query) {}
+}
+
+export class AddExtendedQueryAfterInstersect {
+  static readonly type = '[QUERY] Add Extended After Instersect';
+
+  constructor(public query: Query, public result: PostResult[]) {}
 }
 
 export class AddInitialRequestType {

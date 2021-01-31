@@ -4,11 +4,12 @@ declare var $: any;
 import 'jqueryui';
 
 import { PostRequestService } from 'src/app/services/post-request.service';
-import { PostRequest } from 'src/app/classes/post';
+import { PostRequest, PostResult } from 'src/app/classes/post';
 import { SetStateService } from 'src/app/services/set-state.service';
 import { Select, Store } from '@ngxs/store';
 import { QueryState } from 'src/app/state/query.state';
 import { Observable } from 'rxjs';
+import { DiffService } from 'src/app/services/diff.service';
 
 @Component({
   selector: 'app-chatbot',
@@ -19,46 +20,49 @@ export class ChatbotComponent implements OnInit {
   postRequest: PostRequest = null;
   request: PostRequest;
   requestNegative: PostRequest;
+  requestExtended: PostRequest;
   message: any;
   lastResults;
   @Select(QueryState.getLastQuery) lastQuery$: Observable<any[]>;
+  diff: PostResult[];
 
   constructor(
     private postRequestService: PostRequestService,
-    private setStateService: SetStateService
+    private setStateService: SetStateService,
+    private diffService: DiffService
   ) {
-    this.postRequest = this.postRequestService.createPostRequest(
-      'initial test'
-    );
-    console.log(this.postRequest);
+    if (!this.setStateService.request) return;
 
     this.setStateService.request.subscribe((request) => {
-      //console.log('subscribing');
       this.request = request;
-      //console.log('Request after subscribe', this.request);
     });
 
+    if (!this.setStateService.request) return;
     this.setStateService.requestNegative.subscribe((requestNegative) => {
-      //console.log('subscribing to negative request');
       this.requestNegative = requestNegative;
-      //console.log('NEGATIVE Request after subscribe', this.requestNegative);
     });
+
+    if (!this.setStateService.requestExtended) return;
+    this.setStateService.requestExtended.subscribe((requestExtended) => {
+      this.requestExtended = requestExtended;
+    });
+
+    if (!this.diffService.diff) return;
+    // this.diffService.diff.subscribe((diff) => {
+    //   this.diff = diff;
+    // });
 
     this.lastQuery$.subscribe((results) => (this.lastResults = results));
-    //console.log('LAST RESULTS IN CHATBOT COMPONENT', this.lastResults);
-    //this.lastResults = [];
   }
 
   ngOnInit() {
     //initialization
     //$(document).ready(function() {
-    console.log('request', this.postRequest);
-    console.log('service', this.postRequestService);
-
     let postRequest = this.postRequest;
     let postRequestService = this.postRequestService;
     let setStateServiceLocal = this.setStateService;
-    console.log('set state service in global scope', setStateServiceLocal);
+    let diff = this.diff;
+    // console.log('set state service in global scope', setStateServiceLocal);
 
     //Bot pop-up intro
     $('div').removeClass('tap-target-origin');
@@ -79,6 +83,7 @@ export class ChatbotComponent implements OnInit {
     let requestGlobal = this.request;
     let messageGlobal = this.message;
     let requestGlobalNegatve = this.requestNegative;
+    let requestGlobalExtended = this.requestExtended;
 
     //if you want the bot to start the conversation
     // action_trigger();
@@ -223,6 +228,8 @@ export class ChatbotComponent implements OnInit {
           if (message.toLowerCase() == '/restart') {
             $('#userInput').prop('disabled', false);
 
+            setBotResponse('Restarting the conversation.');
+
             //if you want the bot to start the conversation after restart
             // action_trigger();
             return;
@@ -314,13 +321,28 @@ export class ChatbotComponent implements OnInit {
 
               //check of the custom payload type is "query"
               if (response[i].custom.payload == 'query') {
+                console.log(
+                  'inside response is there slot?:',
+                  response[i].custom
+                );
                 if (!messageGlobal) {
                   console.log('messageGlobal still undefined and returning');
                   return;
                 }
 
+                let slot_value = response[i].custom.data.text.query;
+
+                if (!slot_value) {
+                  console.log('slot value is undefined');
+                  return;
+                }
+
+                // requestGlobal = postRequestService.createPostRequest(
+                //   messageGlobal
+                // );
+
                 requestGlobal = postRequestService.createPostRequest(
-                  messageGlobal
+                  slot_value
                 );
 
                 if (!requestGlobal) {
@@ -329,28 +351,96 @@ export class ChatbotComponent implements OnInit {
                 }
 
                 let addQuery = setStateServiceLocal.setAction(requestGlobal);
-                console.log(
-                  'set state service in local scope',
-                  setStateServiceLocal,
-                  addQuery
-                );
+                // console.log(
+                //   'set state service in local scope',
+                //   setStateServiceLocal,
+                //   addQuery
+                // );
 
-                var BotResponse =
-                  '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
-                  response[i].custom.data.text +
-                  '</p><div class="clearfix"></div>';
-                $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
+                // var BotResponse =
+                //   '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
+                //   // 'Here are your ' +
+                //   response[i].custom.data.text +
+                //   // ' results.' +
+                //   '</p><div class="clearfix"></div>';
+                // $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
               }
 
-              //check of the custom payload type is "query"
-              if (response[i].custom.payload == 'query_negative') {
+              //check of the custom payload type is "query_extended"
+              if (response[i].custom.payload == 'query_extended') {
+                console.log(
+                  'inside response is there slot?:',
+                  response[i].custom
+                );
                 if (!messageGlobal) {
                   console.log('messageGlobal still undefined and returning');
                   return;
                 }
 
-                requestGlobalNegatve = postRequestService.createPostRequest(
+                //let slot_value = response[i].custom.data.text.query;
+
+                // if (!slot_value) {
+                //   console.log('slot value is undefined');
+                //   return;
+                // }
+
+                requestGlobalExtended = postRequestService.createPostRequest(
                   messageGlobal
+                );
+
+                // requestGlobalExtended = postRequestService.createPostRequest(
+                //   slot_value
+                // );
+
+                if (!requestGlobalExtended) {
+                  console.log('still undefined and returning');
+                  return;
+                }
+
+                let addQueryExtended = setStateServiceLocal.setActionExtended(
+                  requestGlobalExtended
+                );
+                // console.log(
+                //   'set state service in local scope',
+                //   setStateServiceLocal,
+                //   addQueryNegative
+                // );
+
+                //CONTINUE FROM HERE. YOU NEED TO IMPLEMENT THE SET DIFFERENCE NOW
+
+                // var BotResponse =
+                //   '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
+                //   //'Here are your extended results.' +
+                //   response[i].custom.data.text +
+                //   //'</p><div class="clearfix"></div>';
+                //   $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
+              }
+
+              //check of the custom payload type is "query_negative"
+              if (response[i].custom.payload == 'query_negative') {
+                console.log(
+                  'inside response is there slot?:',
+                  response[i].custom
+                );
+                console.log('just the response:', response[i]);
+                if (!messageGlobal) {
+                  console.log('messageGlobal still undefined and returning');
+                  return;
+                }
+
+                let slot_value = response[i].custom.data.text.query;
+
+                // // if (!slot_value) {
+                // //   console.log('slot value is undefined');
+                // //   return;
+                // // }
+
+                // requestGlobalNegatve = postRequestService.createPostRequest(
+                //   messageGlobal
+                // );
+
+                requestGlobalNegatve = postRequestService.createPostRequest(
+                  slot_value
                 );
 
                 if (!requestGlobalNegatve) {
@@ -361,19 +451,29 @@ export class ChatbotComponent implements OnInit {
                 let addQueryNegative = setStateServiceLocal.setActionNegative(
                   requestGlobalNegatve
                 );
-                console.log(
-                  'set state service in local scope',
-                  setStateServiceLocal,
-                  addQueryNegative
-                );
+                // console.log(
+                //   'set state service in local scope',
+                //   setStateServiceLocal,
+                //   addQueryNegative
+                // );
 
                 //CONTINUE FROM HERE. YOU NEED TO IMPLEMENT THE SET DIFFERENCE NOW
-
-                var BotResponse =
-                  '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
-                  response[i].custom.data.text +
-                  '</p><div class="clearfix"></div>';
-                $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
+                if (diff !== undefined && diff.length === 0) {
+                  var BotResponse =
+                    '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
+                    'There are no results corresponding to your request.' +
+                    '</p><div class="clearfix"></div>';
+                  $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
+                } else {
+                  console.log('HUHUUU');
+                  var BotResponse =
+                    '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
+                    'Here are your results without ' +
+                    response[i].custom.data.text.query +
+                    '.' +
+                    '</p><div class="clearfix"></div>';
+                  $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
+                }
               }
             }
           }

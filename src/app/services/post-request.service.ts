@@ -12,10 +12,10 @@ export class PostRequestService {
       query: query,
       method: 'bm25okapi',
       qe_method: '',
-      max_results: 8, //100,
+      max_results: 120,
     };
 
-    console.log('inside post', postRequest);
+    //console.log('inside post', postRequest);
 
     return postRequest;
   }

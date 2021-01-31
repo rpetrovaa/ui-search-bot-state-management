@@ -10,8 +10,10 @@ export class SetStateService {
 
   private postRequest$ = new BehaviorSubject<PostRequest>(null);
   private postRequestNegative$ = new BehaviorSubject<PostRequest>(null);
+  private postRequestExtended$ = new BehaviorSubject<PostRequest>(null);
   request = this.postRequest$.asObservable();
   requestNegative = this.postRequestNegative$.asObservable();
+  requestExtended = this.postRequestExtended$.asObservable();
 
   setAction(postRequest: PostRequest) {
     this.postRequest$.next(postRequest);
@@ -19,6 +21,10 @@ export class SetStateService {
 
   setActionNegative(postRequest: PostRequest) {
     this.postRequestNegative$.next(postRequest);
+  }
+
+  setActionExtended(postRequest: PostRequest) {
+    this.postRequestExtended$.next(postRequest);
   }
 
   getAction() {

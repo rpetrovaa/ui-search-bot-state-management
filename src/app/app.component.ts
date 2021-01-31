@@ -1,14 +1,20 @@
 import { Component, OnInit } from '@angular/core';
 import { Gui2wireApiService } from './services/gui2wire-api.service';
-import { PostRequest } from './classes/post';
+import { PostRequest, PostResult } from './classes/post';
 import { FormControl, FormGroup } from '@angular/forms';
-import { AddNegativeQuery, AddQuery } from './actions/query.actions';
+import {
+  AddNegativeQueryBeforeDiff,
+  AddNegativeQueryAfterDiff,
+  AddQuery,
+  AddExtendedQueryBeforeIntersect,
+} from './actions/query.actions';
 import { QueryState } from './state/query.state';
 import { Observable } from 'rxjs';
 import { Select, Store } from '@ngxs/store';
 import { RequestType } from './model/query.model';
 import { SetStateService } from './services/set-state.service';
 import { API } from './model/api';
+import { DiffService } from './services/diff.service';
 
 @Component({
   selector: 'app-root',
@@ -21,8 +27,8 @@ export class AppComponent implements OnInit {
 
   api = API;
 
-  mode_chatbot = false; //'search ui'; //'chatbot'; //or "search ui"
-  mode_searchUI = true;
+  mode_chatbot = true; //'search ui'; //'chatbot'; //or "search ui"
+  mode_searchUI = false;
 
   postRequest: PostRequest = {
     query: '',
@@ -40,8 +46,13 @@ export class AppComponent implements OnInit {
 
   request: PostRequest;
   requestNegative: PostRequest;
+  requestExtended: PostRequest;
 
   resultsNegative: any;
+  resultsDiff: PostResult[];
+
+  resultsExtended: any;
+  resultsIntersect: PostResult[];
 
   snapshot;
   lastResults: any;
@@ -49,7 +60,8 @@ export class AppComponent implements OnInit {
   constructor(
     private store: Store,
     private service: Gui2wireApiService,
-    private setActionService: SetStateService
+    private setActionService: SetStateService,
+    private diffService: DiffService
   ) {}
 
   ngOnInit() {
@@ -61,26 +73,30 @@ export class AppComponent implements OnInit {
       if (this.setActionService.requestNegative) {
         this.setActionService.requestNegative.subscribe((request) => {
           this.requestNegative = request;
-          //console.log('in app NEGATIVE request is: ', this.requestNegative);
           if (this.requestNegative) {
             console.log('requestNegative is not undefined');
 
             this.computeNegativeResults(this.requestNegative);
 
             this.lastQuery$.subscribe((results) => {
-              //console.log('LAST RESULTS IN in the Subscribe', results);
               this.lastResults = results;
-              let setDiff = this.calculateSetDifference(
+              let setDiff: PostResult[] = this.calculateSetDifference(
                 this.lastResults[0],
                 this.lastResults[1]
               );
-
-              console.log('Viewing the difference', setDiff);
-
-              this.renderChatbotResultsFromMetaData(setDiff);
+              //console.log(setDiff);
+              if (!setDiff) return;
+              this.resultsDiff = [];
+              setDiff.forEach((res) => {
+                this.resultsDiff.push(res);
+              });
             });
+
+            if (!this.resultsDiff) return;
+            this.renderChatbotResultsFromMetaData(this.resultsDiff);
           }
         });
+        this.setActionService.requestNegative = null;
       }
 
       if (this.setActionService.request) {
@@ -88,15 +104,45 @@ export class AppComponent implements OnInit {
           this.request = request;
           console.log('in app request is: ', this.request);
           if (this.request) {
-            console.log('rendering');
+            //console.log('rendering');
             this.renderChatbotResults(this.request);
           }
         });
+        this.setActionService.request = null;
       }
     }
 
-    this.snapshot = this.store.snapshot();
-    console.log('SNAPSHOT:', this.snapshot);
+    if (this.setActionService.requestExtended) {
+      this.setActionService.requestExtended.subscribe((request) => {
+        this.requestExtended = request;
+        if (this.requestExtended) {
+          console.log('requestExtended is not undefined');
+
+          this.computeExtendedResults(this.requestExtended);
+
+          this.lastQuery$.subscribe((results) => {
+            this.lastResults = results;
+            let intersect: PostResult[] = this.calculateSetIntersection(
+              this.lastResults[0],
+              this.lastResults[1]
+            );
+            //console.log(setDiff);
+            if (!intersect) return;
+            this.resultsIntersect = [];
+            intersect.forEach((res) => {
+              this.resultsIntersect.push(res);
+            });
+          });
+
+          if (!this.resultsIntersect) return;
+          this.renderChatbotResultsFromMetaData(this.resultsIntersect);
+        }
+      });
+      this.setActionService.requestExtended = null;
+    }
+
+    // this.snapshot = this.store.snapshot();
+    // console.log('SNAPSHOT:', this.snapshot);
   }
 
   sendRequest() {
@@ -135,10 +181,8 @@ export class AppComponent implements OnInit {
   }
 
   computeNegativeResults(negRequest: PostRequest) {
-    //console.log('in computeNegativeResults');
-
     this.store.dispatch(
-      new AddNegativeQuery({
+      new AddNegativeQueryBeforeDiff({
         query: negRequest.query,
         requestType: RequestType.NEGATIVE,
         postRequest: negRequest,
@@ -147,10 +191,7 @@ export class AppComponent implements OnInit {
     this.queryResults$.subscribe((results) => {
       if (!results) return;
 
-      //console.log('Results from NEGATIVE request in app:', results);
-
       this.resultsNegative = [];
-
       const primary = [];
       let resImgs = [];
 
@@ -165,9 +206,36 @@ export class AppComponent implements OnInit {
 
       if (!this.resultsNegative && !primary && !resImgs) return;
       this.resultsNegative = this.combineArrays(primary, resImgs);
-      //console.log('this.resultsNegative in the loop', this.resultsNegative);
     });
-    //console.log('this.resultsNegative after the loop', this.resultsNegative);
+  }
+
+  computeExtendedResults(extRequest: PostRequest) {
+    this.store.dispatch(
+      new AddExtendedQueryBeforeIntersect({
+        query: extRequest.query,
+        requestType: RequestType.ADDITIVE,
+        postRequest: extRequest,
+      })
+    );
+    this.queryResults$.subscribe((results) => {
+      if (!results) return;
+
+      this.resultsIntersect = [];
+      const primary = [];
+      let resImgs = [];
+
+      results.forEach((result) => {
+        result.result.forEach((element) => {
+          const index = element.index;
+          const url = '/ui/' + index + '.jpg';
+          primary.push(element);
+          resImgs.push(url);
+        });
+      });
+
+      if (!this.resultsIntersect && !primary && !resImgs) return;
+      this.resultsIntersect = this.combineArrays(primary, resImgs);
+    });
   }
 
   renderChatbotResults(request: PostRequest) {
@@ -205,7 +273,9 @@ export class AppComponent implements OnInit {
   renderChatbotResultsFromMetaData(results: any) {
     if (!results) return;
 
-    console.log('RESULTS', results);
+    let query_results = results;
+
+    //console.log('RESULTS', results);
 
     this.resultsMeta = [];
     this.resultsImages = [];
@@ -219,7 +289,7 @@ export class AppComponent implements OnInit {
     });
     if (!this.resultsMeta && !primary && !this.resultsImages) return;
     this.resultsMeta = this.combineArrays(primary, this.resultsImages);
-    console.log('this.resultsMeta', this.resultsMeta);
+    //console.log('this.resultsMeta', this.resultsMeta);
   }
 
   getUIs(data) {
@@ -281,6 +351,22 @@ export class AppComponent implements OnInit {
       ({ index: id1 }) => !setB.result.some(({ index: id2 }) => id2 === id1)
     );
     console.log('the diff', diff);
+    if (!diff) return;
+    this.diffService.setDifference(diff);
     return diff;
+  }
+
+  calculateSetIntersection(setA, setB) {
+    console.log('setA', setA);
+    console.log('setB', setB);
+    if (!setA) return;
+    if (!setB) return;
+    let intersect = setA.result.filter(({ index: id1 }) =>
+      setB.result.some(({ index: id2 }) => id2 === id1)
+    );
+    console.log('the intersect', intersect);
+    if (!intersect) return;
+    this.diffService.setDifference(intersect);
+    return intersect;
   }
 }
