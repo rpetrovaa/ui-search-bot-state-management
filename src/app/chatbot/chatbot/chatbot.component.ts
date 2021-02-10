@@ -444,7 +444,7 @@ export class ChatbotComponent implements OnInit {
 
                 let addQueryExtended = setStateServiceLocal.setActionExtended(
                   requestGlobalExtended,
-                  stateExtGLobal
+                  RequestType.ADDITIVE
                 );
                 // console.log(
                 //   'set state service in local scope',
