@@ -60,22 +60,24 @@ export class QueryState {
     { payload }: AddQuery
   ) {
     const state = getState();
+    console.log('PAYLOAD');
+    console.log(payload.requestType);
     return this.queryService.post('/api', payload.postRequest).pipe(
       take(1),
       tap((result) => {
         if (!result) return;
         console.log('result in additive', result);
-        let type = RequestType.ADDITIVE;
-        if (state.counter == 0) {
-          type = RequestType.INITIAL;
-        }
+        // let type = RequestType.ADDITIVE;
+        // if (state.counter == 0) {
+        //   type = RequestType.INITIAL;
+        // }
         setState({
           queries: [
             ...state.queries,
             {
               query: {
                 query: payload.query,
-                requestType: type,
+                requestType: payload.requestType,
                 postRequest: payload.postRequest,
               },
               result: result.results,
@@ -98,14 +100,13 @@ export class QueryState {
       tap((result) => {
         if (!result) return;
         console.log('Result in b4 neg', result);
-        let type = RequestType.NEGATIVE;
         setState({
           queries: [
             ...state.queries,
             {
               query: {
                 query: payload.query,
-                requestType: type,
+                requestType: payload.requestType,
                 postRequest: payload.postRequest,
               },
               result: result.results,
@@ -118,7 +119,7 @@ export class QueryState {
           new AddNegativeQueryAfterDiff(
             {
               query: payload.query,
-              requestType: type,
+              requestType: payload.requestType,
               postRequest: payload.postRequest,
             },
             diff
@@ -135,14 +136,13 @@ export class QueryState {
   ) {
     console.log('Result in after neg', result);
     const state = getState();
-    let type = RequestType.NEGATIVE;
     return setState({
       queries: [
         ...state.queries,
         {
           query: {
             query: query.query,
-            requestType: type,
+            requestType: query.requestType,
             postRequest: query.postRequest,
           },
           result: result,
@@ -162,14 +162,14 @@ export class QueryState {
       tap((result) => {
         if (!result) return;
         console.log('Result in b4 intersect', result);
-        let type = RequestType.ADDITIVE;
+        // let type = RequestType.ADDITIVE;
         setState({
           queries: [
             ...state.queries,
             {
               query: {
                 query: payload.query,
-                requestType: type,
+                requestType: payload.requestType,
                 postRequest: payload.postRequest,
               },
               result: result.results,
@@ -182,7 +182,7 @@ export class QueryState {
           new AddExtendedQueryAfterInstersect(
             {
               query: payload.query,
-              requestType: type,
+              requestType: payload.requestType,
               postRequest: payload.postRequest,
             },
             diff
@@ -199,14 +199,14 @@ export class QueryState {
   ) {
     console.log('Result in after intersect', result);
     const state = getState();
-    let type = RequestType.ADDITIVE;
+    // let type = RequestType.ADDITIVE;
     return setState({
       queries: [
         ...state.queries,
         {
           query: {
             query: query.query,
-            requestType: type,
+            requestType: query.requestType,
             postRequest: query.postRequest,
           },
           result: result,

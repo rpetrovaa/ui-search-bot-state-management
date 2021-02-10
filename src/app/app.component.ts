@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { Gui2wireApiService } from './services/gui2wire-api.service';
 import { PostRequest, PostResult } from './classes/post';
 import { FormControl, FormGroup } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
+import { ImageDialogComponent } from './image-dialog/image-dialog.component';
 import {
   AddNegativeQueryBeforeDiff,
   AddNegativeQueryAfterDiff,
@@ -57,11 +59,15 @@ export class AppComponent implements OnInit {
   snapshot;
   lastResults: any;
 
+  state: string;
+  stateExt: string;
+
   constructor(
     private store: Store,
     private service: Gui2wireApiService,
     private setActionService: SetStateService,
-    private diffService: DiffService
+    private diffService: DiffService,
+    public dialog: MatDialog
   ) {}
 
   ngOnInit() {
@@ -101,7 +107,9 @@ export class AppComponent implements OnInit {
 
       if (this.setActionService.request) {
         this.setActionService.request.subscribe((request) => {
-          this.request = request;
+          if (!request) return;
+          this.request = request.postRequest;
+          this.state = RequestType[request.type];
           console.log('in app request is: ', this.request);
           if (this.request) {
             //console.log('rendering');
@@ -114,7 +122,9 @@ export class AppComponent implements OnInit {
 
     if (this.setActionService.requestExtended) {
       this.setActionService.requestExtended.subscribe((request) => {
-        this.requestExtended = request;
+        if (!request) return;
+        this.requestExtended = request.postRequest;
+        this.stateExt = RequestType[request.type];
         if (this.requestExtended) {
           console.log('requestExtended is not undefined');
 
@@ -151,7 +161,7 @@ export class AppComponent implements OnInit {
     this.store.dispatch(
       new AddQuery({
         query: this.postRequest.query,
-        requestType: RequestType.INITIAL,
+        requestType: RequestType[0],
         postRequest: this.postRequest,
       })
     );
@@ -184,7 +194,7 @@ export class AppComponent implements OnInit {
     this.store.dispatch(
       new AddNegativeQueryBeforeDiff({
         query: negRequest.query,
-        requestType: RequestType.NEGATIVE,
+        requestType: RequestType[2],
         postRequest: negRequest,
       })
     );
@@ -213,7 +223,7 @@ export class AppComponent implements OnInit {
     this.store.dispatch(
       new AddExtendedQueryBeforeIntersect({
         query: extRequest.query,
-        requestType: RequestType.ADDITIVE,
+        requestType: RequestType[1],
         postRequest: extRequest,
       })
     );
@@ -239,10 +249,12 @@ export class AppComponent implements OnInit {
   }
 
   renderChatbotResults(request: PostRequest) {
+    //if (!this.state) return;
+    console.log('STATE', this.state);
     this.store.dispatch(
       new AddQuery({
         query: request.query,
-        requestType: RequestType.INITIAL,
+        requestType: this.state,
         postRequest: request,
       })
     );
@@ -255,7 +267,12 @@ export class AppComponent implements OnInit {
       const primary = [];
 
       results.forEach((result) => {
-        result.result.forEach((element) => {
+        if (!result) return;
+        if (!result.result) return;
+        const top = this.getTopResults(result.result);
+        console.log('TOP', top);
+        top.forEach((element) => {
+          if (!element) return;
           const index = element.index;
           const url = '/ui/' + index + '.jpg';
           primary.push(element);
@@ -281,7 +298,10 @@ export class AppComponent implements OnInit {
     this.resultsImages = [];
     const primary = [];
 
-    results.forEach((result) => {
+    const top = this.getTopResults(results);
+    console.log('TOP', top);
+
+    top.forEach((result) => {
       const index = result.index;
       const url = '/ui/' + index + '.jpg';
       primary.push(result);
@@ -368,5 +388,24 @@ export class AppComponent implements OnInit {
     if (!intersect) return;
     this.diffService.setDifference(intersect);
     return intersect;
+  }
+
+  openImageDialog(url: String) {
+    this.dialog.open(ImageDialogComponent, {
+      data: {
+        url: url,
+      },
+      panelClass: 'image-dialog-container',
+    });
+  }
+
+  //get top 20 results
+  getTopResults(metaResults: any[]) {
+    if (!metaResults) return;
+    let top = [];
+    for (let i = 0; i < 20; i++) {
+      top.push(metaResults[i]);
+    }
+    return top;
   }
 }

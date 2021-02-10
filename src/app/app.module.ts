@@ -8,6 +8,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatCardModule } from '@angular/material/card';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
 
 import { NgxsModule } from '@ngxs/store';
 import { NgxsReduxDevtoolsPluginModule } from '@ngxs/devtools-plugin';
@@ -20,6 +22,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ChatbotComponent } from './chatbot/chatbot/chatbot.component';
 import { PostRequestService } from './services/post-request.service';
 import { SetStateService } from './services/set-state.service';
+import { ImageDialogComponent } from './image-dialog/image-dialog.component';
 
 @NgModule({
   imports: [
@@ -33,12 +36,14 @@ import { SetStateService } from './services/set-state.service';
     MatButtonModule,
     MatGridListModule,
     MatCardModule,
+    MatDialogModule,
+    MatIconModule,
     NgxsModule.forRoot([QueryState]),
     NgxsReduxDevtoolsPluginModule.forRoot(),
     NgxsLoggerPluginModule.forRoot(),
     BrowserAnimationsModule,
   ],
-  declarations: [AppComponent, ChatbotComponent],
+  declarations: [AppComponent, ChatbotComponent, ImageDialogComponent],
   providers: [Gui2wireApiService, PostRequestService, SetStateService],
   bootstrap: [AppComponent],
 })

@@ -10,6 +10,7 @@ import { Select, Store } from '@ngxs/store';
 import { QueryState } from 'src/app/state/query.state';
 import { Observable } from 'rxjs';
 import { DiffService } from 'src/app/services/diff.service';
+import { RequestType } from 'src/app/model/query.model';
 
 @Component({
   selector: 'app-chatbot',
@@ -25,6 +26,9 @@ export class ChatbotComponent implements OnInit {
   lastResults;
   @Select(QueryState.getLastQuery) lastQuery$: Observable<any[]>;
   diff: PostResult[];
+  state: RequestType;
+  stateExt: RequestType;
+  counter: number = 0;
 
   constructor(
     private postRequestService: PostRequestService,
@@ -32,22 +36,24 @@ export class ChatbotComponent implements OnInit {
     private diffService: DiffService
   ) {
     if (!this.setStateService.request) return;
-
     this.setStateService.request.subscribe((request) => {
-      this.request = request;
+      this.request = request.postRequest;
+      this.state = request.type;
     });
 
-    if (!this.setStateService.request) return;
+    if (!this.setStateService.requestNegative) return;
     this.setStateService.requestNegative.subscribe((requestNegative) => {
       this.requestNegative = requestNegative;
     });
 
     if (!this.setStateService.requestExtended) return;
     this.setStateService.requestExtended.subscribe((requestExtended) => {
-      this.requestExtended = requestExtended;
+      this.requestExtended = requestExtended.postRequest;
+      this.stateExt = requestExtended.type;
     });
 
     if (!this.diffService.diff) return;
+    this.diff = this.diffService.getDifference();
     // this.diffService.diff.subscribe((diff) => {
     //   this.diff = diff;
     // });
@@ -58,10 +64,10 @@ export class ChatbotComponent implements OnInit {
   ngOnInit() {
     //initialization
     //$(document).ready(function() {
-    let postRequest = this.postRequest;
     let postRequestService = this.postRequestService;
     let setStateServiceLocal = this.setStateService;
-    let diff = this.diff;
+    //let diff = this.diff;
+    let diffServiceLocal = this.diffService;
     // console.log('set state service in global scope', setStateServiceLocal);
 
     //Bot pop-up intro
@@ -84,6 +90,10 @@ export class ChatbotComponent implements OnInit {
     let messageGlobal = this.message;
     let requestGlobalNegatve = this.requestNegative;
     let requestGlobalExtended = this.requestExtended;
+    let stateGlobal = this.state;
+    let stateExtGLobal = this.stateExt;
+    let counterGlobal = this.counter;
+    let askedGlobal = false;
 
     //if you want the bot to start the conversation
     // action_trigger();
@@ -237,6 +247,22 @@ export class ChatbotComponent implements OnInit {
 
           messageGlobal = message;
 
+          // if (stateGlobal !== undefined && !messageGlobal.includes('yes')) {
+          //   stateGlobal = RequestType.ADDITIVE;
+          // } else {
+          //   stateGlobal = RequestType.INITIAL;
+          // }
+
+          if (
+            botResponse !== undefined &&
+            botResponse[0].text == 'What other screens would you like to have?'
+          ) {
+            if (message.includes('yes')) {
+              counterGlobal = 0;
+              console.log('RESETTING COUNTER');
+            }
+          }
+
           setBotResponse(botResponse);
         },
         error: function (xhr, textStatus, errorThrown) {
@@ -245,6 +271,7 @@ export class ChatbotComponent implements OnInit {
             //if you want the bot to start the conversation after the restart action.
             // action_trigger();
             // return;
+            stateGlobal = RequestType.INITIAL;
           }
 
           // if there is no response from rasa server
@@ -334,36 +361,54 @@ export class ChatbotComponent implements OnInit {
 
                 if (!slot_value) {
                   console.log('slot value is undefined');
-                  return;
+                  requestGlobal = postRequestService.createPostRequest(
+                    messageGlobal
+                  );
+                } else {
+                  requestGlobal = postRequestService.createPostRequest(
+                    slot_value
+                  );
                 }
-
-                // requestGlobal = postRequestService.createPostRequest(
-                //   messageGlobal
-                // );
-
-                requestGlobal = postRequestService.createPostRequest(
-                  slot_value
-                );
 
                 if (!requestGlobal) {
                   console.log('still undefined and returning');
                   return;
                 }
 
-                let addQuery = setStateServiceLocal.setAction(requestGlobal);
+                console.log('state global', stateGlobal);
+                if (counterGlobal === 0) {
+                  stateGlobal = RequestType.INITIAL;
+                  counterGlobal += 1;
+                } else {
+                  stateGlobal = RequestType.ADDITIVE;
+                  counterGlobal += 1;
+                }
+
+                let addQuery = setStateServiceLocal.setAction(
+                  requestGlobal,
+                  stateGlobal
+                );
                 // console.log(
                 //   'set state service in local scope',
                 //   setStateServiceLocal,
                 //   addQuery
                 // );
 
-                // var BotResponse =
-                //   '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
-                //   // 'Here are your ' +
-                //   response[i].custom.data.text +
-                //   // ' results.' +
-                //   '</p><div class="clearfix"></div>';
-                // $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
+                if (!slot_value) {
+                  var BotResponse =
+                    '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
+                    'Here are your results.' +
+                    '</p><div class="clearfix"></div>';
+                  $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
+                } else {
+                  var BotResponse =
+                    '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
+                    'Here are your ' +
+                    slot_value +
+                    ' results.' +
+                    '</p><div class="clearfix"></div>';
+                  $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
+                }
               }
 
               //check of the custom payload type is "query_extended"
@@ -377,28 +422,29 @@ export class ChatbotComponent implements OnInit {
                   return;
                 }
 
-                //let slot_value = response[i].custom.data.text.query;
+                let slot_value = response[i].custom.data.text.query;
 
-                // if (!slot_value) {
-                //   console.log('slot value is undefined');
-                //   return;
-                // }
-
-                requestGlobalExtended = postRequestService.createPostRequest(
-                  messageGlobal
-                );
-
-                // requestGlobalExtended = postRequestService.createPostRequest(
-                //   slot_value
-                // );
+                if (!slot_value) {
+                  console.log('slot value is undefined');
+                  requestGlobalExtended = postRequestService.createPostRequest(
+                    messageGlobal
+                  );
+                } else {
+                  requestGlobalExtended = postRequestService.createPostRequest(
+                    slot_value
+                  );
+                }
 
                 if (!requestGlobalExtended) {
                   console.log('still undefined and returning');
                   return;
                 }
 
+                stateExtGLobal = RequestType.ADDITIVE;
+
                 let addQueryExtended = setStateServiceLocal.setActionExtended(
-                  requestGlobalExtended
+                  requestGlobalExtended,
+                  stateExtGLobal
                 );
                 // console.log(
                 //   'set state service in local scope',
@@ -408,12 +454,25 @@ export class ChatbotComponent implements OnInit {
 
                 //CONTINUE FROM HERE. YOU NEED TO IMPLEMENT THE SET DIFFERENCE NOW
 
-                // var BotResponse =
-                //   '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
-                //   //'Here are your extended results.' +
-                //   response[i].custom.data.text +
-                //   //'</p><div class="clearfix"></div>';
-                //   $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
+                let diff = diffServiceLocal.getDifference();
+                console.log('DIFF in BOt Comp', diff);
+
+                if (diff !== null && diff.length < 0) {
+                  console.log('IN INTERSECT BLOCK');
+                  var BotResponse =
+                    '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
+                    'There are no results corresponding to your request.' +
+                    '</p><div class="clearfix"></div>';
+                  $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
+                } else {
+                  var BotResponse =
+                    '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
+                    'Here are your results with ' +
+                    slot_value +
+                    '.' +
+                    '</p><div class="clearfix"></div>';
+                  $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
+                }
               }
 
               //check of the custom payload type is "query_negative"
@@ -430,18 +489,16 @@ export class ChatbotComponent implements OnInit {
 
                 let slot_value = response[i].custom.data.text.query;
 
-                // // if (!slot_value) {
-                // //   console.log('slot value is undefined');
-                // //   return;
-                // // }
-
-                // requestGlobalNegatve = postRequestService.createPostRequest(
-                //   messageGlobal
-                // );
-
-                requestGlobalNegatve = postRequestService.createPostRequest(
-                  slot_value
-                );
+                if (!slot_value) {
+                  console.log('slot value is undefined');
+                  requestGlobalNegatve = postRequestService.createPostRequest(
+                    messageGlobal
+                  );
+                } else {
+                  requestGlobalNegatve = postRequestService.createPostRequest(
+                    slot_value
+                  );
+                }
 
                 if (!requestGlobalNegatve) {
                   console.log('still undefined and returning');
@@ -457,19 +514,23 @@ export class ChatbotComponent implements OnInit {
                 //   addQueryNegative
                 // );
 
+                let diff = diffServiceLocal.getDifference();
+
                 //CONTINUE FROM HERE. YOU NEED TO IMPLEMENT THE SET DIFFERENCE NOW
-                if (diff !== undefined && diff.length === 0) {
+                // if (!diff) return;
+
+                if (diff != null && diff.length < 1) {
+                  console.log('IN DIFF BLOCK');
                   var BotResponse =
                     '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
                     'There are no results corresponding to your request.' +
                     '</p><div class="clearfix"></div>';
                   $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
                 } else {
-                  console.log('HUHUUU');
                   var BotResponse =
                     '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
                     'Here are your results without ' +
-                    response[i].custom.data.text.query +
+                    slot_value +
                     '.' +
                     '</p><div class="clearfix"></div>';
                   $(BotResponse).appendTo('.chats').hide().fadeIn(1000);

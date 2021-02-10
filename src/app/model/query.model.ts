@@ -2,7 +2,7 @@ import { PostRequest, PostResult } from '../classes/post';
 
 export interface Query {
   query: string;
-  requestType: RequestType;
+  requestType: string;
   postRequest: PostRequest;
 }
 
