@@ -80,7 +80,7 @@ export class AppComponent implements OnInit {
         this.setActionService.requestNegative.subscribe((request) => {
           this.requestNegative = request;
           if (this.requestNegative) {
-            console.log('requestNegative is not undefined');
+            // console.log('requestNegative is not undefined');
 
             this.computeNegativeResults(this.requestNegative);
 
@@ -110,7 +110,7 @@ export class AppComponent implements OnInit {
           if (!request) return;
           this.request = request.postRequest;
           this.state = RequestType[request.type];
-          console.log('in app request is: ', this.request);
+          // console.log('in app request is: ', this.request);
           if (this.request) {
             //console.log('rendering');
             this.renderChatbotResults(this.request);
@@ -126,7 +126,7 @@ export class AppComponent implements OnInit {
         this.requestExtended = request.postRequest;
         this.stateExt = RequestType[request.type];
         if (this.requestExtended) {
-          console.log('requestExtended is not undefined');
+          // console.log('requestExtended is not undefined');
 
           this.computeExtendedResults(this.requestExtended);
 
@@ -250,7 +250,7 @@ export class AppComponent implements OnInit {
 
   renderChatbotResults(request: PostRequest) {
     //if (!this.state) return;
-    console.log('STATE', this.state);
+    //console.log('STATE', this.state);
     this.store.dispatch(
       new AddQuery({
         query: request.query,
@@ -262,7 +262,7 @@ export class AppComponent implements OnInit {
       if (!results) return;
       this.resultsMeta = [];
       this.resultsImages = [];
-      console.log('Results in app:', results);
+      //console.log('Results in app:', results);
 
       const primary = [];
 
@@ -270,7 +270,7 @@ export class AppComponent implements OnInit {
         if (!result) return;
         if (!result.result) return;
         const top = this.getTopResults(result.result);
-        console.log('TOP', top);
+        //console.log('TOP', top);
         top.forEach((element) => {
           if (!element) return;
           const index = element.index;
@@ -299,8 +299,9 @@ export class AppComponent implements OnInit {
     const primary = [];
 
     const top = this.getTopResults(results);
-    console.log('TOP', top);
+    //console.log('TOP', top);
 
+    if (!top) return;
     top.forEach((result) => {
       const index = result.index;
       const url = '/ui/' + index + '.jpg';
@@ -314,7 +315,7 @@ export class AppComponent implements OnInit {
 
   getUIs(data) {
     if (!data) {
-      console.log('No metadata retrieved from server.');
+      // console.log('No metadata retrieved from server.');
       return;
     }
 
@@ -363,28 +364,28 @@ export class AppComponent implements OnInit {
   }
 
   calculateSetDifference(setA, setB) {
-    console.log('setA', setA);
-    console.log('setB', setB);
+    // console.log('setA', setA);
+    // console.log('setB', setB);
     if (!setA) return;
     if (!setB) return;
     let diff = setA.result.filter(
       ({ index: id1 }) => !setB.result.some(({ index: id2 }) => id2 === id1)
     );
-    console.log('the diff', diff);
+    // console.log('the diff', diff);
     if (!diff) return;
     this.diffService.setDifference(diff);
     return diff;
   }
 
   calculateSetIntersection(setA, setB) {
-    console.log('setA', setA);
-    console.log('setB', setB);
+    // console.log('setA', setA);
+    // console.log('setB', setB);
     if (!setA) return;
     if (!setB) return;
     let intersect = setA.result.filter(({ index: id1 }) =>
       setB.result.some(({ index: id2 }) => id2 === id1)
     );
-    console.log('the intersect', intersect);
+    // console.log('the intersect', intersect);
     if (!intersect) return;
     this.diffService.setDifference(intersect);
     return intersect;

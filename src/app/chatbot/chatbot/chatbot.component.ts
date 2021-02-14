@@ -259,7 +259,7 @@ export class ChatbotComponent implements OnInit {
           ) {
             if (message.includes('yes')) {
               counterGlobal = 0;
-              console.log('RESETTING COUNTER');
+              // console.log('RESETTING COUNTER');
             }
           }
 
@@ -348,19 +348,19 @@ export class ChatbotComponent implements OnInit {
 
               //check of the custom payload type is "query"
               if (response[i].custom.payload == 'query') {
-                console.log(
-                  'inside response is there slot?:',
-                  response[i].custom
-                );
+                // console.log(
+                //   'inside response is there slot?:',
+                //   response[i].custom
+                // );
                 if (!messageGlobal) {
-                  console.log('messageGlobal still undefined and returning');
+                  // console.log('messageGlobal still undefined and returning');
                   return;
                 }
 
                 let slot_value = response[i].custom.data.text.query;
 
                 if (!slot_value) {
-                  console.log('slot value is undefined');
+                  // console.log('slot value is undefined');
                   requestGlobal = postRequestService.createPostRequest(
                     messageGlobal
                   );
@@ -371,11 +371,11 @@ export class ChatbotComponent implements OnInit {
                 }
 
                 if (!requestGlobal) {
-                  console.log('still undefined and returning');
+                  // console.log('still undefined and returning');
                   return;
                 }
 
-                console.log('state global', stateGlobal);
+                // console.log('state global', stateGlobal);
                 if (counterGlobal === 0) {
                   stateGlobal = RequestType.INITIAL;
                   counterGlobal += 1;
@@ -413,19 +413,19 @@ export class ChatbotComponent implements OnInit {
 
               //check of the custom payload type is "query_extended"
               if (response[i].custom.payload == 'query_extended') {
-                console.log(
-                  'inside response is there slot?:',
-                  response[i].custom
-                );
+                // console.log(
+                //   'inside response is there slot?:',
+                //   response[i].custom
+                // );
                 if (!messageGlobal) {
-                  console.log('messageGlobal still undefined and returning');
+                  // console.log('messageGlobal still undefined and returning');
                   return;
                 }
 
                 let slot_value = response[i].custom.data.text.query;
 
                 if (!slot_value) {
-                  console.log('slot value is undefined');
+                  // console.log('slot value is undefined');
                   requestGlobalExtended = postRequestService.createPostRequest(
                     messageGlobal
                   );
@@ -436,7 +436,7 @@ export class ChatbotComponent implements OnInit {
                 }
 
                 if (!requestGlobalExtended) {
-                  console.log('still undefined and returning');
+                  // console.log('still undefined and returning');
                   return;
                 }
 
@@ -455,10 +455,10 @@ export class ChatbotComponent implements OnInit {
                 //CONTINUE FROM HERE. YOU NEED TO IMPLEMENT THE SET DIFFERENCE NOW
 
                 let diff = diffServiceLocal.getDifference();
-                console.log('DIFF in BOt Comp', diff);
+                // console.log('DIFF in BOt Comp', diff);
 
                 if (diff !== null && diff.length < 0) {
-                  console.log('IN INTERSECT BLOCK');
+                  // console.log('IN INTERSECT BLOCK');
                   var BotResponse =
                     '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
                     'There are no results corresponding to your request.' +
@@ -477,20 +477,20 @@ export class ChatbotComponent implements OnInit {
 
               //check of the custom payload type is "query_negative"
               if (response[i].custom.payload == 'query_negative') {
-                console.log(
-                  'inside response is there slot?:',
-                  response[i].custom
-                );
-                console.log('just the response:', response[i]);
+                // console.log(
+                //   'inside response is there slot?:',
+                //   response[i].custom
+                // );
+                // console.log('just the response:', response[i]);
                 if (!messageGlobal) {
-                  console.log('messageGlobal still undefined and returning');
+                  // console.log('messageGlobal still undefined and returning');
                   return;
                 }
 
                 let slot_value = response[i].custom.data.text.query;
 
                 if (!slot_value) {
-                  console.log('slot value is undefined');
+                  // console.log('slot value is undefined');
                   requestGlobalNegatve = postRequestService.createPostRequest(
                     messageGlobal
                   );
@@ -501,7 +501,7 @@ export class ChatbotComponent implements OnInit {
                 }
 
                 if (!requestGlobalNegatve) {
-                  console.log('still undefined and returning');
+                  // console.log('still undefined and returning');
                   return;
                 }
 
@@ -520,7 +520,7 @@ export class ChatbotComponent implements OnInit {
                 // if (!diff) return;
 
                 if (diff != null && diff.length < 1) {
-                  console.log('IN DIFF BLOCK');
+                  // console.log('IN DIFF BLOCK');
                   var BotResponse =
                     '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
                     'There are no results corresponding to your request.' +
