@@ -31,6 +31,12 @@ export class AddExtendedQueryAfterInstersect {
   constructor(public query: Query, public result: PostResult[]) {}
 }
 
+export class AddNextScreens {
+  static readonly type = '[QUERY] Add Next Top 20 Screens';
+
+  constructor(public query: Query, public result: PostResult[]) {}
+}
+
 export class AddInitialRequestType {
   static readonly type = '[INITIALREQUESTTYPE] Add';
 }

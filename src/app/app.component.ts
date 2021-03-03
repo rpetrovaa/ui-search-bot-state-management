@@ -9,6 +9,7 @@ import {
   AddNegativeQueryAfterDiff,
   AddQuery,
   AddExtendedQueryBeforeIntersect,
+  AddNextScreens,
 } from './actions/query.actions';
 import { QueryState } from './state/query.state';
 import { Observable } from 'rxjs';
@@ -62,6 +63,10 @@ export class AppComponent implements OnInit {
   state: string;
   stateExt: string;
 
+  counter: number;
+  nextResults: any;
+  indexNext: number = 0;
+
   constructor(
     private store: Store,
     private service: Gui2wireApiService,
@@ -78,11 +83,12 @@ export class AppComponent implements OnInit {
     } else {
       if (this.setActionService.requestNegative) {
         this.setActionService.requestNegative.subscribe((request) => {
-          this.requestNegative = request;
+          if (!request) return;
+          this.requestNegative = request.postRequest;
           if (this.requestNegative) {
             // console.log('requestNegative is not undefined');
 
-            this.computeNegativeResults(this.requestNegative);
+            this.computeNegativeResults(this.requestNegative, this.counter);
 
             this.lastQuery$.subscribe((results) => {
               this.lastResults = results;
@@ -109,11 +115,12 @@ export class AppComponent implements OnInit {
         this.setActionService.request.subscribe((request) => {
           if (!request) return;
           this.request = request.postRequest;
-          this.state = RequestType[request.type];
+          this.state = RequestType[request.requestType];
+          this.counter = request.counter;
           // console.log('in app request is: ', this.request);
           if (this.request) {
             //console.log('rendering');
-            this.renderChatbotResults(this.request);
+            this.renderChatbotResults(this.request, this.counter);
           }
         });
         this.setActionService.request = null;
@@ -124,31 +131,70 @@ export class AppComponent implements OnInit {
       this.setActionService.requestExtended.subscribe((request) => {
         if (!request) return;
         this.requestExtended = request.postRequest;
-        this.stateExt = RequestType[request.type];
+        console.log('STATE', this.stateExt);
+        console.log(request.requestType);
+        this.stateExt = RequestType[request.requestType];
+        this.counter = request.counter;
+        console.log('Before resetting index, statet is: ' + this.stateExt);
+        if (this.stateExt === 'INITIAL') {
+          this.indexNext = 0;
+        }
         if (this.requestExtended) {
           // console.log('requestExtended is not undefined');
 
-          this.computeExtendedResults(this.requestExtended);
+          this.computeExtendedResults(
+            this.requestExtended,
+            this.counter,
+            this.stateExt
+          );
 
           this.lastQuery$.subscribe((results) => {
+            if (!results) return;
             this.lastResults = results;
-            let intersect: PostResult[] = this.calculateSetIntersection(
-              this.lastResults[0],
-              this.lastResults[1]
-            );
-            //console.log(setDiff);
-            if (!intersect) return;
-            this.resultsIntersect = [];
-            intersect.forEach((res) => {
-              this.resultsIntersect.push(res);
-            });
-          });
+            if (this.counter > 0) {
+              let intersect: PostResult[] = this.calculateSetIntersection(
+                this.lastResults[0],
+                this.lastResults[1]
+              );
+              //console.log(setDiff);
+              if (!intersect) return;
+              this.resultsIntersect = [];
+              intersect.forEach((res) => {
+                this.resultsIntersect.push(res);
+              });
+              if (!this.resultsIntersect) return;
+              this.renderChatbotResultsFromMetaData(this.resultsIntersect);
+            } else {
+              console.log('IN HEREEE');
 
-          if (!this.resultsIntersect) return;
-          this.renderChatbotResultsFromMetaData(this.resultsIntersect);
+              if (this.lastResults[1] && this.lastResults[1].result) {
+                console.log(this.lastResults[1].result);
+                this.renderChatbotResultsFromMetaData(
+                  this.lastResults[1].result
+                );
+              }
+            }
+          });
         }
       });
       this.setActionService.requestExtended = null;
+    }
+
+    if (this.setActionService.requestMoreScreens) {
+      console.log('more', this.setActionService.requestMoreScreens);
+      this.setActionService.requestMoreScreens.subscribe((request) => {
+        if (!request) return;
+        console.log('STATE', this.stateExt);
+        console.log(request.requestType);
+        this.stateExt = RequestType[request.requestType];
+        this.counter = request.counter;
+
+        this.computeNextScreensResults(
+          this.requestExtended,
+          this.counter,
+          this.stateExt
+        );
+      });
     }
 
     // this.snapshot = this.store.snapshot();
@@ -163,6 +209,7 @@ export class AppComponent implements OnInit {
         query: this.postRequest.query,
         requestType: RequestType[0],
         postRequest: this.postRequest,
+        counter: this.counter,
       })
     );
     this.queryResults$.subscribe((results) => {
@@ -190,12 +237,13 @@ export class AppComponent implements OnInit {
     this.resultsImages = [];
   }
 
-  computeNegativeResults(negRequest: PostRequest) {
+  computeNegativeResults(negRequest: PostRequest, counter: number) {
     this.store.dispatch(
       new AddNegativeQueryBeforeDiff({
         query: negRequest.query,
         requestType: RequestType[2],
         postRequest: negRequest,
+        counter: counter,
       })
     );
     this.queryResults$.subscribe((results) => {
@@ -219,12 +267,17 @@ export class AppComponent implements OnInit {
     });
   }
 
-  computeExtendedResults(extRequest: PostRequest) {
+  computeExtendedResults(
+    extRequest: PostRequest,
+    counter: number,
+    type: string
+  ) {
     this.store.dispatch(
       new AddExtendedQueryBeforeIntersect({
         query: extRequest.query,
-        requestType: RequestType[1],
+        requestType: type,
         postRequest: extRequest,
+        counter: counter,
       })
     );
     this.queryResults$.subscribe((results) => {
@@ -248,7 +301,38 @@ export class AppComponent implements OnInit {
     });
   }
 
-  renderChatbotResults(request: PostRequest) {
+  computeNextScreensResults(
+    extRequest: PostRequest,
+    counter: number,
+    type: string
+  ) {
+    this.nextResults = [];
+
+    console.log('LAST RES', this.lastResults);
+
+    this.nextResults = this.getNextTopResults(this.lastResults[1].result);
+
+    console.log('NEXT RES: ', this.nextResults);
+
+    if (!this.nextResults) return;
+    console.log('next res', this.nextResults);
+
+    this.store.dispatch(
+      new AddNextScreens(
+        {
+          query: null,
+          requestType: type,
+          postRequest: null,
+          counter: counter,
+        },
+        this.lastResults[1].result
+      )
+    );
+
+    this.renderChatbotResultsFromMetaData(this.nextResults);
+  }
+
+  renderChatbotResults(request: PostRequest, counter: number) {
     //if (!this.state) return;
     //console.log('STATE', this.state);
     this.store.dispatch(
@@ -256,6 +340,7 @@ export class AppComponent implements OnInit {
         query: request.query,
         requestType: this.state,
         postRequest: request,
+        counter: counter,
       })
     );
     this.queryResults$.subscribe((results) => {
@@ -288,6 +373,7 @@ export class AppComponent implements OnInit {
   }
 
   renderChatbotResultsFromMetaData(results: any) {
+    console.log('is it null?', results);
     if (!results) return;
 
     let query_results = results;
@@ -299,10 +385,12 @@ export class AppComponent implements OnInit {
     const primary = [];
 
     const top = this.getTopResults(results);
-    //console.log('TOP', top);
+    console.log('TOP', top);
 
     if (!top) return;
     top.forEach((result) => {
+      // console.log('iterating in TOP', result);
+      if (!result) return;
       const index = result.index;
       const url = '/ui/' + index + '.jpg';
       primary.push(result);
@@ -407,6 +495,18 @@ export class AppComponent implements OnInit {
     for (let i = 0; i < 20; i++) {
       top.push(metaResults[i]);
     }
+    return top;
+  }
+
+  getNextTopResults(metaResults: any[]) {
+    if (!metaResults) return;
+    console.log('NEXT INDEX', this.indexNext);
+    let top = [];
+    for (let i = this.indexNext + 20; i < this.indexNext + 40; i++) {
+      //console.log('i: ', i);
+      top.push(metaResults[i]);
+    }
+    this.indexNext = this.indexNext + 20;
     return top;
   }
 }

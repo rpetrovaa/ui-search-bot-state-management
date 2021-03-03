@@ -29,6 +29,7 @@ export class ChatbotComponent implements OnInit {
   state: RequestType;
   stateExt: RequestType;
   counter: number = 0;
+  requestMoreScreens: any;
 
   constructor(
     private postRequestService: PostRequestService,
@@ -38,18 +39,25 @@ export class ChatbotComponent implements OnInit {
     if (!this.setStateService.request) return;
     this.setStateService.request.subscribe((request) => {
       this.request = request.postRequest;
-      this.state = request.type;
+      this.state = request.requestType;
     });
 
     if (!this.setStateService.requestNegative) return;
     this.setStateService.requestNegative.subscribe((requestNegative) => {
-      this.requestNegative = requestNegative;
+      this.requestNegative = requestNegative.postRequest;
+      this.state = requestNegative.requestType;
     });
 
     if (!this.setStateService.requestExtended) return;
     this.setStateService.requestExtended.subscribe((requestExtended) => {
       this.requestExtended = requestExtended.postRequest;
-      this.stateExt = requestExtended.type;
+      this.stateExt = requestExtended.requestType;
+    });
+
+    if (!this.setStateService.requestMoreScreens) return;
+    this.setStateService.requestMoreScreens.subscribe((requestMoreScreens) => {
+      this.requestMoreScreens = requestMoreScreens.postRequest;
+      this.state = requestMoreScreens.requestType;
     });
 
     if (!this.diffService.diff) return;
@@ -346,70 +354,70 @@ export class ChatbotComponent implements OnInit {
                 return;
               }
 
-              //check of the custom payload type is "query"
-              if (response[i].custom.payload == 'query') {
-                // console.log(
-                //   'inside response is there slot?:',
-                //   response[i].custom
-                // );
-                if (!messageGlobal) {
-                  // console.log('messageGlobal still undefined and returning');
-                  return;
-                }
+              // //check of the custom payload type is "query"
+              // if (response[i].custom.payload == 'query') {
+              //   // console.log(
+              //   //   'inside response is there slot?:',
+              //   //   response[i].custom
+              //   // );
+              //   if (!messageGlobal) {
+              //     // console.log('messageGlobal still undefined and returning');
+              //     return;
+              //   }
 
-                let slot_value = response[i].custom.data.text.query;
+              //   let slot_value = response[i].custom.data.text.query;
 
-                if (!slot_value) {
-                  // console.log('slot value is undefined');
-                  requestGlobal = postRequestService.createPostRequest(
-                    messageGlobal
-                  );
-                } else {
-                  requestGlobal = postRequestService.createPostRequest(
-                    slot_value
-                  );
-                }
+              //   if (!slot_value) {
+              //     // console.log('slot value is undefined');
+              //     requestGlobal = postRequestService.createPostRequest(
+              //       messageGlobal
+              //     );
+              //   } else {
+              //     requestGlobal = postRequestService.createPostRequest(
+              //       slot_value
+              //     );
+              //   }
 
-                if (!requestGlobal) {
-                  // console.log('still undefined and returning');
-                  return;
-                }
+              //   if (!requestGlobal) {
+              //     // console.log('still undefined and returning');
+              //     return;
+              //   }
 
-                // console.log('state global', stateGlobal);
-                if (counterGlobal === 0) {
-                  stateGlobal = RequestType.INITIAL;
-                  counterGlobal += 1;
-                } else {
-                  stateGlobal = RequestType.ADDITIVE;
-                  counterGlobal += 1;
-                }
+              //   // console.log('state global', stateGlobal);
+              //   if (counterGlobal === 0) {
+              //     stateGlobal = RequestType.INITIAL;
+              //     counterGlobal += 1;
+              //   } else {
+              //     stateGlobal = RequestType.ADDITIVE;
+              //     counterGlobal += 1;
+              //   }
 
-                let addQuery = setStateServiceLocal.setAction(
-                  requestGlobal,
-                  stateGlobal
-                );
-                // console.log(
-                //   'set state service in local scope',
-                //   setStateServiceLocal,
-                //   addQuery
-                // );
+              //   let addQuery = setStateServiceLocal.setAction(
+              //     requestGlobal,
+              //     stateGlobal
+              //   );
+              //   // console.log(
+              //   //   'set state service in local scope',
+              //   //   setStateServiceLocal,
+              //   //   addQuery
+              //   // );
 
-                if (!slot_value) {
-                  var BotResponse =
-                    '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
-                    'Here are your results.' +
-                    '</p><div class="clearfix"></div>';
-                  $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
-                } else {
-                  var BotResponse =
-                    '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
-                    'Here are your ' +
-                    slot_value +
-                    ' results.' +
-                    '</p><div class="clearfix"></div>';
-                  $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
-                }
-              }
+              //   if (!slot_value) {
+              //     var BotResponse =
+              //       '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
+              //       'Here are your results.' +
+              //       '</p><div class="clearfix"></div>';
+              //     $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
+              //   } else {
+              //     var BotResponse =
+              //       '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
+              //       'Here are your ' +
+              //       slot_value +
+              //       ' results.' +
+              //       '</p><div class="clearfix"></div>';
+              //     $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
+              //   }
+              // }
 
               //check of the custom payload type is "query_extended"
               if (response[i].custom.payload == 'query_extended') {
@@ -440,11 +448,36 @@ export class ChatbotComponent implements OnInit {
                   return;
                 }
 
+                var BotResponse = '';
+
+                if (counterGlobal === 0) {
+                  stateGlobal = RequestType.INITIAL;
+                  // counterGlobal += 1;
+                  BotResponse =
+                    '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
+                    'Here are your ' +
+                    slot_value +
+                    ' results.' +
+                    '</p><div class="clearfix"></div>';
+                  $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
+                } else {
+                  stateGlobal = RequestType.ADDITIVE;
+                  // counterGlobal += 1;
+                  BotResponse =
+                    '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
+                    'Here are your results with ' +
+                    slot_value +
+                    '.' +
+                    '</p><div class="clearfix"></div>';
+                  $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
+                }
+
                 stateExtGLobal = RequestType.ADDITIVE;
 
                 let addQueryExtended = setStateServiceLocal.setActionExtended(
                   requestGlobalExtended,
-                  RequestType.ADDITIVE
+                  stateGlobal,
+                  counterGlobal
                 );
                 // console.log(
                 //   'set state service in local scope',
@@ -459,20 +492,30 @@ export class ChatbotComponent implements OnInit {
 
                 if (diff !== null && diff.length < 0) {
                   // console.log('IN INTERSECT BLOCK');
-                  var BotResponse =
+                  BotResponse =
                     '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
                     'There are no results corresponding to your request.' +
                     '</p><div class="clearfix"></div>';
                   $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
-                } else {
-                  var BotResponse =
-                    '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
-                    'Here are your results with ' +
-                    slot_value +
-                    '.' +
-                    '</p><div class="clearfix"></div>';
-                  $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
                 }
+
+                counterGlobal += 1;
+
+                // else if (counterGlobal === 0) {
+                //   var BotResponse =
+                //     '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
+                //     'Here are your results.' +
+                //     '</p><div class="clearfix"></div>';
+                //   $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
+                // } else {
+                //   var BotResponse =
+                //     '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
+                //     'Here are your results with ' +
+                //     slot_value +
+                //     '.' +
+                //     '</p><div class="clearfix"></div>';
+                //   $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
+                // }
               }
 
               //check of the custom payload type is "query_negative"
@@ -505,14 +548,20 @@ export class ChatbotComponent implements OnInit {
                   return;
                 }
 
+                stateGlobal = RequestType.NEGATIVE;
+
                 let addQueryNegative = setStateServiceLocal.setActionNegative(
-                  requestGlobalNegatve
+                  requestGlobalNegatve,
+                  stateGlobal,
+                  counterGlobal
                 );
                 // console.log(
                 //   'set state service in local scope',
                 //   setStateServiceLocal,
                 //   addQueryNegative
                 // );
+
+                counterGlobal += 1;
 
                 let diff = diffServiceLocal.getDifference();
 
@@ -535,6 +584,35 @@ export class ChatbotComponent implements OnInit {
                     '</p><div class="clearfix"></div>';
                   $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
                 }
+              }
+
+              //check of the custom payload type is "query_negative"
+              if (response[i].custom.payload == 'more_screens') {
+                // console.log(
+                //   'inside response is there slot?:',
+                //   response[i].custom
+                // );
+                // console.log('just the response:', response[i]);
+                console.log('in chatbot accessing more screens');
+
+                stateGlobal = RequestType.ADDITIVE;
+
+                setStateServiceLocal.setActionMoreScreens(
+                  null,
+                  stateGlobal,
+                  counterGlobal
+                );
+                // console.log(
+                //   'set state service in local scope',
+                //   setStateServiceLocal,
+                //   addQueryNegative
+                // );
+
+                setStateServiceLocal.requestMoreScreens.subscribe((request) =>
+                  console.log('in chatbot', request)
+                );
+
+                counterGlobal += 1;
               }
             }
           }

@@ -7,6 +7,7 @@ import {
   AddNegativeQueryAfterDiff,
   AddExtendedQueryBeforeIntersect,
   AddExtendedQueryAfterInstersect,
+  AddNextScreens,
 } from '../actions/query.actions';
 import { QueryResult, RequestType } from '../model/query.model';
 import { Gui2wireApiService } from '../services/gui2wire-api.service';
@@ -17,14 +18,14 @@ import { DiffService } from '../services/diff.service';
 
 export class QueryStateModel {
   queries: QueryResult[];
-  counter: number;
+  // counter: number;
 }
 
 @State<QueryStateModel>({
   name: 'queries',
   defaults: {
     queries: [],
-    counter: 0,
+    // counter: 0,
   },
 })
 @Injectable()
@@ -79,11 +80,12 @@ export class QueryState {
                 query: payload.query,
                 requestType: payload.requestType,
                 postRequest: payload.postRequest,
+                counter: payload.counter,
               },
               result: result.results,
             },
           ],
-          counter: (state.counter += 1),
+          // counter: (state.counter += 1),
         });
       })
     );
@@ -108,11 +110,12 @@ export class QueryState {
                 query: payload.query,
                 requestType: payload.requestType,
                 postRequest: payload.postRequest,
+                counter: payload.counter,
               },
               result: result.results,
             },
           ],
-          counter: (state.counter += 1),
+          // counter: (state.counter += 1),
         });
         let diff = this.diffService.getDifference();
         dispatch(
@@ -121,6 +124,7 @@ export class QueryState {
               query: payload.query,
               requestType: payload.requestType,
               postRequest: payload.postRequest,
+              counter: payload.counter,
             },
             diff
           )
@@ -144,11 +148,12 @@ export class QueryState {
             query: query.query,
             requestType: query.requestType,
             postRequest: query.postRequest,
+            counter: query.counter,
           },
           result: result,
         },
       ],
-      counter: (state.counter += 1),
+      // counter: (state.counter += 1),
     });
   }
   @Action(AddExtendedQueryBeforeIntersect)
@@ -171,23 +176,26 @@ export class QueryState {
                 query: payload.query,
                 requestType: payload.requestType,
                 postRequest: payload.postRequest,
+                counter: payload.counter,
               },
               result: result.results,
             },
           ],
-          counter: (state.counter += 1),
         });
-        let diff = this.diffService.getDifference();
-        dispatch(
-          new AddExtendedQueryAfterInstersect(
-            {
-              query: payload.query,
-              requestType: payload.requestType,
-              postRequest: payload.postRequest,
-            },
-            diff
-          )
-        );
+        if (state.queries[state.queries.length - 1] !== undefined) {
+          let diff = this.diffService.getDifference();
+          dispatch(
+            new AddExtendedQueryAfterInstersect(
+              {
+                query: payload.query,
+                requestType: payload.requestType,
+                postRequest: payload.postRequest,
+                counter: payload.counter,
+              },
+              diff
+            )
+          );
+        }
       })
     );
   }
@@ -200,6 +208,11 @@ export class QueryState {
     console.log('Result in after intersect', result);
     const state = getState();
     // let type = RequestType.ADDITIVE;
+    console.log('STATEEE: ', state);
+    console.log(
+      'STATEEE Counter: ',
+      state.queries[state.queries.length - 1].query.counter
+    );
     return setState({
       queries: [
         ...state.queries,
@@ -208,11 +221,43 @@ export class QueryState {
             query: query.query,
             requestType: query.requestType,
             postRequest: query.postRequest,
+            counter: query.counter,
           },
           result: result,
         },
       ],
-      counter: (state.counter += 1),
+      // counter: (state.counter += 1),
+    });
+  }
+
+  @Action(AddNextScreens)
+  AddNextScreens(
+    { getState, setState }: StateContext<QueryStateModel>,
+    { query, result }: AddNextScreens
+  ) {
+    console.log('Result in after intersect', result);
+    const state = getState();
+    // let type = RequestType.ADDITIVE;
+    console.log('STATEEE: ', state);
+    console.log(
+      'STATEEE Counter: ',
+      state.queries[state.queries.length - 1].query.counter
+    );
+    return setState({
+      queries: [
+        ...state.queries,
+        {
+          query: {
+            query: state.queries[state.queries.length - 1].query.query,
+            requestType: query.requestType,
+            postRequest:
+              state.queries[state.queries.length - 1].query.postRequest,
+            counter: query.counter,
+          },
+          result: result,
+        },
+      ],
+      // counter: (state.counter += 1),
     });
   }
 

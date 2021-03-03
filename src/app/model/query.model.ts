@@ -4,6 +4,13 @@ export interface Query {
   query: string;
   requestType: string;
   postRequest: PostRequest;
+  counter: number;
+}
+
+export class CombinedRequest {
+  postRequest: PostRequest;
+  requestType: RequestType;
+  counter: number;
 }
 
 export interface QueryResult {
