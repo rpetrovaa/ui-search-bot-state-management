@@ -1,0 +1,49 @@
+<h1 style="margin-left: 50px">Search GUIs</h1>
+
+<div *ngIf="mode_searchUI">
+  <div *ngIf="searchForm">
+    <form [formGroup]="searchForm" novalidate>
+      <mat-form-field
+        appearance="outline"
+        style="margin-left: 50px; width: 300px"
+      >
+        <mat-label>Search Request</mat-label>
+        <input
+          matInput
+          placeholder="Enter User Requirement or User Story"
+          formControlName="value"
+        />
+      </mat-form-field>
+      <button
+        mat-raised-button
+        color="grey"
+        style="margin-left: 10px; height: 1cm"
+        (click)="sendRequest()"
+      >
+        Search
+      </button>
+    </form>
+  </div>
+</div>
+
+<div *ngIf="resultsMeta" id="main">
+  <mat-grid-list cols="3" rowHeight="600px">
+    <mat-grid-tile *ngFor="let item of resultsMeta; index as i" id="results">
+      <mat-card class="example-card" (click)="openImageDialog(item.screenURL)">
+        <mat-card-header>
+          <mat-card-title>{{ i + 1 }}</mat-card-title>
+        </mat-card-header>
+        <img mat-card-image src="{{ item.screenURL }}" />
+        <mat-card-content>
+          <ul>
+            <li>Rank: {{ item.resultMeta.rank }}</li>
+            <li>Index: {{ item.resultMeta.index }}</li>
+            <li>Score: {{ item.resultMeta.score }}</li>
+          </ul>
+        </mat-card-content>
+      </mat-card>
+    </mat-grid-tile>
+  </mat-grid-list>
+</div>
+
+<app-chatbot *ngIf="mode_chatbot"></app-chatbot>
