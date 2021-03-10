@@ -464,6 +464,22 @@ export class UISearchChatbotComponent implements OnInit {
     );
     // console.log('the diff', diff);
     if (!diff) return;
+
+    if (diff.length < 20 && diff.length > 1) {
+      console.log(
+        'Diffren was smaller than 20 and bigger than 1. Calculating new intersect'
+      );
+      diff = [...setA.result, ...diff].sort((a, b) => {
+        if (a.score < b.score) {
+          return -1;
+        }
+        if (a.score > b.score) {
+          return 1;
+        }
+        return 0;
+      });
+    }
+
     this.diffService.setDifference(diff);
     return diff;
   }
@@ -478,6 +494,22 @@ export class UISearchChatbotComponent implements OnInit {
     );
     // console.log('the intersect', intersect);
     if (!intersect) return;
+
+    if (intersect.length < 20 && intersect.length > 1) {
+      console.log(
+        'Intersect was smaller than 20 and bigger than 1. Calculating new intersect'
+      );
+      intersect = [...setA.result, ...intersect].sort((a, b) => {
+        if (a.score < b.score) {
+          return -1;
+        }
+        if (a.score > b.score) {
+          return 1;
+        }
+        return 0;
+      });
+    }
+
     this.diffService.setDifference(intersect);
     return intersect;
   }
