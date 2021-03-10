@@ -36,11 +36,11 @@ export class ChatbotComponent implements OnInit {
     private setStateService: SetStateService,
     private diffService: DiffService
   ) {
-    if (!this.setStateService.request) return;
-    this.setStateService.request.subscribe((request) => {
-      this.request = request.postRequest;
-      this.state = request.requestType;
-    });
+    // if (!this.setStateService.request) return;
+    // this.setStateService.request.subscribe((request) => {
+    //   this.request = request.postRequest;
+    //   this.state = request.requestType;
+    // });
 
     if (!this.setStateService.requestNegative) return;
     this.setStateService.requestNegative.subscribe((requestNegative) => {

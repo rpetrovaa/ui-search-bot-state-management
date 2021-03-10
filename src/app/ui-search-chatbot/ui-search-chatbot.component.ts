@@ -470,10 +470,10 @@ export class UISearchChatbotComponent implements OnInit {
         'Diffren was smaller than 20 and bigger than 1. Calculating new intersect'
       );
       diff = [...setA.result, ...diff].sort((a, b) => {
-        if (a.score < b.score) {
+        if (b.score < a.score) {
           return -1;
         }
-        if (a.score > b.score) {
+        if (b.score > a.score) {
           return 1;
         }
         return 0;
@@ -500,10 +500,10 @@ export class UISearchChatbotComponent implements OnInit {
         'Intersect was smaller than 20 and bigger than 1. Calculating new intersect'
       );
       intersect = [...setA.result, ...intersect].sort((a, b) => {
-        if (a.score < b.score) {
+        if (b.score < a.score) {
           return -1;
         }
-        if (a.score > b.score) {
+        if (b.score > a.score) {
           return 1;
         }
         return 0;
