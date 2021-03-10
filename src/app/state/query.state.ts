@@ -61,13 +61,13 @@ export class QueryState {
     { payload }: AddQuery
   ) {
     const state = getState();
-    console.log('PAYLOAD');
-    console.log(payload.requestType);
+    // console.log('PAYLOAD');
+    // console.log(payload.requestType);
     return this.queryService.post('/api', payload.postRequest).pipe(
       take(1),
       tap((result) => {
         if (!result) return;
-        console.log('result in additive', result);
+        // console.log('result in additive', result);
         // let type = RequestType.ADDITIVE;
         // if (state.counter == 0) {
         //   type = RequestType.INITIAL;
@@ -101,7 +101,7 @@ export class QueryState {
       take(1),
       tap((result) => {
         if (!result) return;
-        console.log('Result in b4 neg', result);
+        // console.log('Result in b4 neg', result);
         setState({
           queries: [
             ...state.queries,
@@ -138,7 +138,7 @@ export class QueryState {
     { getState, setState }: StateContext<QueryStateModel>,
     { query, result }: AddNegativeQueryAfterDiff
   ) {
-    console.log('Result in after neg', result);
+    // console.log('Result in after neg', result);
     const state = getState();
     return setState({
       queries: [
@@ -166,7 +166,7 @@ export class QueryState {
       take(1),
       tap((result) => {
         if (!result) return;
-        console.log('Result in b4 intersect', result);
+        // console.log('Result in b4 intersect', result);
         // let type = RequestType.ADDITIVE;
         setState({
           queries: [
@@ -182,7 +182,27 @@ export class QueryState {
             },
           ],
         });
-        if (state.queries[state.queries.length - 1] !== undefined) {
+        // console.log(
+        //   'is the if condition satisfied: ',
+        //   state.queries[state.queries.length - 1] !== undefined ? true : false
+        // );
+        //skip AddExtendedQueryAfterInstersect if we restart the state back to "INITIAL" with a new query
+        // if (
+        //   state.queries[state.queries.length - 1] !== undefined &&
+        //   state.queries[state.queries.length - 1].query.counter > 0
+        // )
+
+        //didn't work the 2nd time you start a new query. It still entered After Intersect
+        // if (
+        //   state.queries[state.queries.length - 1].query.requestType !==
+        //   'INITIAL'
+        // )
+
+        if (payload.requestType !== 'INITIAL') {
+          console.log(
+            'request type in AfterIntersect',
+            state.queries[state.queries.length - 1].query.requestType
+          );
           let diff = this.diffService.getDifference();
           dispatch(
             new AddExtendedQueryAfterInstersect(
@@ -205,14 +225,14 @@ export class QueryState {
     { getState, setState }: StateContext<QueryStateModel>,
     { query, result }: AddExtendedQueryAfterInstersect
   ) {
-    console.log('Result in after intersect', result);
+    // console.log('Result in after intersect', result);
     const state = getState();
     // let type = RequestType.ADDITIVE;
-    console.log('STATEEE: ', state);
-    console.log(
-      'STATEEE Counter: ',
-      state.queries[state.queries.length - 1].query.counter
-    );
+    // console.log('STATEEE: ', state);
+    // console.log(
+    //   'STATEEE Counter: ',
+    //   state.queries[state.queries.length - 1].query.counter
+    // );
     return setState({
       queries: [
         ...state.queries,
@@ -235,14 +255,14 @@ export class QueryState {
     { getState, setState }: StateContext<QueryStateModel>,
     { query, result }: AddNextScreens
   ) {
-    console.log('Result in after intersect', result);
+    // console.log('Result in after intersect', result);
     const state = getState();
-    // let type = RequestType.ADDITIVE;
-    console.log('STATEEE: ', state);
-    console.log(
-      'STATEEE Counter: ',
-      state.queries[state.queries.length - 1].query.counter
-    );
+    // // let type = RequestType.ADDITIVE;
+    // console.log('STATEEE: ', state);
+    // console.log(
+    //   'STATEEE Counter: ',
+    //   state.queries[state.queries.length - 1].query.counter
+    // );
     return setState({
       queries: [
         ...state.queries,

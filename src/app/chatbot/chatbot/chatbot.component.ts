@@ -291,7 +291,7 @@ export class ChatbotComponent implements OnInit {
 
     //=================== set bot response in the chats ===========================================
     function setBotResponse(response) {
-      console.log('checking this.request', requestGlobal);
+      // console.log('checking this.request', requestGlobal);
 
       //display bot response after 500 milliseconds
       setTimeout(function () {
@@ -312,7 +312,7 @@ export class ChatbotComponent implements OnInit {
         } else {
           //if we get response from Rasa
           for (let i = 0; i < response.length; i++) {
-            console.log('bot response:', response);
+            // console.log('bot response:', response);
             //check if the response contains "text"
             if (response[i].hasOwnProperty('text')) {
               var BotResponse =
@@ -490,7 +490,7 @@ export class ChatbotComponent implements OnInit {
                 let diff = diffServiceLocal.getDifference();
                 // console.log('DIFF in BOt Comp', diff);
 
-                if (diff !== null && diff.length < 0) {
+                if (diff !== null && diff.length < 1) {
                   // console.log('IN INTERSECT BLOCK');
                   BotResponse =
                     '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
@@ -568,21 +568,33 @@ export class ChatbotComponent implements OnInit {
                 //CONTINUE FROM HERE. YOU NEED TO IMPLEMENT THE SET DIFFERENCE NOW
                 // if (!diff) return;
 
-                if (diff != null && diff.length < 1) {
+                if (diff !== null && diff.length < 1) {
                   // console.log('IN DIFF BLOCK');
+                  console.log('DIFF SET', diff);
+                  console.log('difference length', diff.length);
                   var BotResponse =
                     '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
                     'There are no results corresponding to your request.' +
                     '</p><div class="clearfix"></div>';
                   $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
                 } else {
-                  var BotResponse =
-                    '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
-                    'Here are your results without ' +
-                    slot_value +
-                    '.' +
-                    '</p><div class="clearfix"></div>';
-                  $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
+                  console.log('DIFF SET', diff);
+                  console.log('difference length', diff.length);
+                  if (!slot_value) {
+                    var BotResponse =
+                      '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
+                      'Here are your results.' +
+                      '</p><div class="clearfix"></div>';
+                    $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
+                  } else {
+                    var BotResponse =
+                      '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
+                      'Here are your results without ' +
+                      slot_value +
+                      '.' +
+                      '</p><div class="clearfix"></div>';
+                    $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
+                  }
                 }
               }
 
@@ -593,7 +605,7 @@ export class ChatbotComponent implements OnInit {
                 //   response[i].custom
                 // );
                 // console.log('just the response:', response[i]);
-                console.log('in chatbot accessing more screens');
+                // console.log('in chatbot accessing more screens');
 
                 stateGlobal = RequestType.ADDITIVE;
 
