@@ -15,6 +15,7 @@ import { tap, take } from 'rxjs/operators';
 import { dispatch } from 'rxjs/internal/observable/pairs';
 import { PostRequest } from '../classes/post';
 import { DiffService } from '../services/diff.service';
+import { IntersectService } from '../services/intersect.service';
 
 export class QueryStateModel {
   queries: QueryResult[];
@@ -32,7 +33,8 @@ export class QueryStateModel {
 export class QueryState {
   constructor(
     private queryService: Gui2wireApiService,
-    private diffService: DiffService
+    private diffService: DiffService,
+    private intersectService: IntersectService
   ) {}
 
   @Selector()
@@ -118,17 +120,21 @@ export class QueryState {
           // counter: (state.counter += 1),
         });
         let diff = this.diffService.getDifference();
-        dispatch(
-          new AddNegativeQueryAfterDiff(
-            {
-              query: payload.query,
-              requestType: payload.requestType,
-              postRequest: payload.postRequest,
-              counter: payload.counter,
-            },
-            diff
-          )
-        );
+        console.log('diff in STATE 1', diff);
+        if (diff) {
+          console.log('diff in STATE 2', diff);
+          dispatch(
+            new AddNegativeQueryAfterDiff(
+              {
+                query: payload.query,
+                requestType: payload.requestType,
+                postRequest: payload.postRequest,
+                counter: payload.counter,
+              },
+              diff
+            )
+          );
+        }
       })
     );
   }
@@ -156,6 +162,7 @@ export class QueryState {
       // counter: (state.counter += 1),
     });
   }
+
   @Action(AddExtendedQueryBeforeIntersect)
   AddExtendedQueryBeforeIntersect(
     { getState, setState, dispatch }: StateContext<QueryStateModel>,
@@ -203,7 +210,9 @@ export class QueryState {
             'request type in AfterIntersect',
             state.queries[state.queries.length - 1].query.requestType
           );
-          let diff = this.diffService.getDifference();
+          // let diff = this.diffService.getDifference();
+          let intersect = this.intersectService.getIntersection();
+
           dispatch(
             new AddExtendedQueryAfterInstersect(
               {
@@ -212,7 +221,7 @@ export class QueryState {
                 postRequest: payload.postRequest,
                 counter: payload.counter,
               },
-              diff
+              intersect
             )
           );
         }

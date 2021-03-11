@@ -11,6 +11,7 @@ import { QueryState } from 'src/app/state/query.state';
 import { Observable } from 'rxjs';
 import { DiffService } from 'src/app/services/diff.service';
 import { RequestType } from 'src/app/model/query.model';
+import { IntersectService } from 'src/app/services/intersect.service';
 
 @Component({
   selector: 'app-chatbot',
@@ -26,6 +27,7 @@ export class ChatbotComponent implements OnInit {
   lastResults;
   @Select(QueryState.getLastQuery) lastQuery$: Observable<any[]>;
   diff: PostResult[];
+  intersect: PostResult[];
   state: RequestType;
   stateExt: RequestType;
   counter: number = 0;
@@ -34,7 +36,8 @@ export class ChatbotComponent implements OnInit {
   constructor(
     private postRequestService: PostRequestService,
     private setStateService: SetStateService,
-    private diffService: DiffService
+    private diffService: DiffService,
+    private intersectService: IntersectService
   ) {
     // if (!this.setStateService.request) return;
     // this.setStateService.request.subscribe((request) => {
@@ -61,7 +64,19 @@ export class ChatbotComponent implements OnInit {
     });
 
     if (!this.diffService.diff) return;
-    this.diff = this.diffService.getDifference();
+    this.diffService.diff.subscribe((diff) => {
+      this.diff = diff;
+      console.log('subscribed diff in chatbot');
+    });
+
+    if (!this.intersectService.intersect) return;
+    this.intersectService.intersect.subscribe((intersect) => {
+      this.intersect = intersect;
+      console.log('subscribed intersect in chatbot');
+    });
+
+    // if (!this.diffService.getDifference()) return;
+    // this.diff = this.diffService.getDifference();
     // this.diffService.diff.subscribe((diff) => {
     //   this.diff = diff;
     // });
@@ -76,6 +91,7 @@ export class ChatbotComponent implements OnInit {
     let setStateServiceLocal = this.setStateService;
     //let diff = this.diff;
     let diffServiceLocal = this.diffService;
+    let intersectServiceLocal = this.intersectService;
     // console.log('set state service in global scope', setStateServiceLocal);
 
     //Bot pop-up intro
@@ -487,10 +503,11 @@ export class ChatbotComponent implements OnInit {
 
                 //CONTINUE FROM HERE. YOU NEED TO IMPLEMENT THE SET DIFFERENCE NOW
 
-                let diff = diffServiceLocal.getDifference();
+                let intersect = intersectServiceLocal.getIntersection();
+                //let diff = diffServiceLocal.getDifference();
                 // console.log('DIFF in BOt Comp', diff);
 
-                if (diff !== null && diff.length < 1) {
+                if (intersect !== null && intersect.length < 1) {
                   // console.log('IN INTERSECT BLOCK');
                   BotResponse =
                     '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
@@ -525,6 +542,7 @@ export class ChatbotComponent implements OnInit {
                 //   response[i].custom
                 // );
                 // console.log('just the response:', response[i]);
+                if (counterGlobal === 0) return;
                 if (!messageGlobal) {
                   // console.log('messageGlobal still undefined and returning');
                   return;
@@ -563,39 +581,49 @@ export class ChatbotComponent implements OnInit {
 
                 counterGlobal += 1;
 
-                let diff = diffServiceLocal.getDifference();
-
                 //CONTINUE FROM HERE. YOU NEED TO IMPLEMENT THE SET DIFFERENCE NOW
                 // if (!diff) return;
 
-                if (diff !== null && diff.length < 1) {
+                //let diff = diffServiceLocal.getDifference();
+                //console.log('first time getting diff 1', diff);
+                diffServiceLocal.diff.subscribe((diff) => {
+                  if (!diff) return;
+                  console.log('first time getting diff 2', diff);
+
+                  //diff !== null){
                   // console.log('IN DIFF BLOCK');
                   console.log('DIFF SET', diff);
                   console.log('difference length', diff.length);
-                  var BotResponse =
-                    '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
-                    'There are no results corresponding to your request.' +
-                    '</p><div class="clearfix"></div>';
-                  $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
-                } else {
-                  console.log('DIFF SET', diff);
-                  console.log('difference length', diff.length);
-                  if (!slot_value) {
+                  console.log('slot value', slot_value);
+                  if (diff.length < 1) {
                     var BotResponse =
                       '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
-                      'Here are your results.' +
+                      'There are no results corresponding to your request.' +
                       '</p><div class="clearfix"></div>';
                     $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
                   } else {
-                    var BotResponse =
-                      '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
-                      'Here are your results without ' +
-                      slot_value +
-                      '.' +
-                      '</p><div class="clearfix"></div>';
-                    $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
+                    console.log('IN ELSE 1');
+                    console.log('DIFF SET', diff);
+                    console.log('difference length', diff.length);
+                    if (!slot_value) {
+                      console.log('IN IF 1');
+                      var BotResponse =
+                        '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
+                        'Here are your results.' +
+                        '</p><div class="clearfix"></div>';
+                      $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
+                    } else {
+                      console.log('IN ELSE 2');
+                      var BotResponse =
+                        '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
+                        'Here are your results without ' +
+                        slot_value +
+                        '.' +
+                        '</p><div class="clearfix"></div>';
+                      $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
+                    }
                   }
-                }
+                });
               }
 
               //check of the custom payload type is "query_negative"

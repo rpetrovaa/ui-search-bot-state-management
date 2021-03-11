@@ -12,12 +12,13 @@ import {
   AddNextScreens,
 } from '../actions/query.actions';
 import { QueryState } from '../state/query.state';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { Select, Store } from '@ngxs/store';
 import { RequestType } from '../model/query.model';
 import { SetStateService } from '../services/set-state.service';
 import { API } from '../model/api';
 import { DiffService } from '../services/diff.service';
+import { IntersectService } from '../services/intersect.service';
 
 @Component({
   selector: 'app-ui-search-chatbot',
@@ -67,11 +68,14 @@ export class UISearchChatbotComponent implements OnInit {
   nextResults: any;
   indexNext: number = 0;
 
+  subscription: Subscription;
+
   constructor(
     private store: Store,
     private service: Gui2wireApiService,
     private setActionService: SetStateService,
     private diffService: DiffService,
+    private intersectService: IntersectService,
     public dialog: MatDialog
   ) {}
 
@@ -90,7 +94,13 @@ export class UISearchChatbotComponent implements OnInit {
 
             this.computeNegativeResults(this.requestNegative, this.counter);
 
-            this.lastQuery$.subscribe((results) => {
+            if (this.subscription) {
+              this.subscription.unsubscribe();
+              console.log('unsubscribing in req NEG');
+            }
+            this.subscription = this.lastQuery$.subscribe((results) => {
+              console.log('subscribing in req NEG...');
+              if (!results) return;
               this.lastResults = results;
               let setDiff: PostResult[] = this.calculateSetDifference(
                 this.lastResults[0],
@@ -103,9 +113,15 @@ export class UISearchChatbotComponent implements OnInit {
                 this.resultsDiff.push(res);
               });
             });
-
             if (!this.resultsDiff) return;
-            this.renderChatbotResultsFromMetaData(this.resultsDiff);
+            //this.diffService.setDifference(this.resultsDiff);
+            //console.log('Setting DIFF RES', this.diffService.getDifference());
+            if (this.diffService.getDifference()) {
+              console.log('rendering after diff != null');
+              this.renderChatbotResultsFromMetaData(this.resultsDiff);
+            }
+            // subscription.unsubscribe();
+            // console.log('unsubscribing in req NEG...');
           }
         });
         this.setActionService.requestNegative = null;
@@ -128,6 +144,7 @@ export class UISearchChatbotComponent implements OnInit {
     }
 
     if (this.setActionService.requestExtended) {
+      console.log('JUMPED IN REQUEST EXTENDED AS WELL');
       this.setActionService.requestExtended.subscribe((request) => {
         if (!request) return;
         this.requestExtended = request.postRequest;
@@ -141,6 +158,7 @@ export class UISearchChatbotComponent implements OnInit {
         }
         if (this.requestExtended) {
           // console.log('requestExtended is not undefined');
+          console.log('In request extended');
 
           this.computeExtendedResults(
             this.requestExtended,
@@ -148,7 +166,12 @@ export class UISearchChatbotComponent implements OnInit {
             this.stateExt
           );
 
-          this.lastQuery$.subscribe((results) => {
+          if (this.subscription) {
+            this.subscription.unsubscribe();
+            console.log('unsubscribing in req ext');
+          }
+          this.subscription = this.lastQuery$.subscribe((results) => {
+            console.log('subscribing in req ext...');
             console.log('counter:', this.counter);
             if (!results) return;
             this.lastResults = results;
@@ -173,9 +196,13 @@ export class UISearchChatbotComponent implements OnInit {
                 this.renderChatbotResultsFromMetaData(
                   this.lastResults[1].result
                 );
+                console.log('reset last results');
+                this.lastResults = [];
               }
             }
           });
+          // subscription.unsubscribe();
+          // console.log('unsubscribing in req ext...');
         }
       });
       this.setActionService.requestExtended = null;
@@ -457,6 +484,7 @@ export class UISearchChatbotComponent implements OnInit {
   calculateSetDifference(setA, setB) {
     // console.log('setA', setA);
     // console.log('setB', setB);
+    console.log('CALCULATING DIFF');
     if (!setA) return;
     if (!setB) return;
     let diff = setA.result.filter(
@@ -485,6 +513,7 @@ export class UISearchChatbotComponent implements OnInit {
   }
 
   calculateSetIntersection(setA, setB) {
+    console.log('CALCULATING INTERSECTION');
     // console.log('setA', setA);
     // console.log('setB', setB);
     if (!setA) return;
@@ -510,7 +539,8 @@ export class UISearchChatbotComponent implements OnInit {
       });
     }
 
-    this.diffService.setDifference(intersect);
+    //this.diffService.setDifference(intersect);
+    this.intersectService.setIntersection(intersect);
     return intersect;
   }
 
