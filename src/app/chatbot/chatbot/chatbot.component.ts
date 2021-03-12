@@ -65,6 +65,7 @@ export class ChatbotComponent implements OnInit {
 
     if (!this.diffService.diff) return;
     this.diffService.diff.subscribe((diff) => {
+      if (!diff) return;
       this.diff = diff;
       console.log('subscribed diff in chatbot');
     });
@@ -566,6 +567,26 @@ export class ChatbotComponent implements OnInit {
                   return;
                 }
 
+                var BotResponse = '';
+
+                if (!slot_value) {
+                  console.log('IN IF 1');
+                  BotResponse =
+                    '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
+                    'Here are your results.' +
+                    '</p><div class="clearfix"></div>';
+                  $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
+                } else {
+                  console.log('IN ELSE 2');
+                  BotResponse =
+                    '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
+                    'Here are your results without ' +
+                    slot_value +
+                    '.' +
+                    '</p><div class="clearfix"></div>';
+                  $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
+                }
+
                 stateGlobal = RequestType.NEGATIVE;
 
                 let addQueryNegative = setStateServiceLocal.setActionNegative(
@@ -573,6 +594,23 @@ export class ChatbotComponent implements OnInit {
                   stateGlobal,
                   counterGlobal
                 );
+
+                let diff = diffServiceLocal.getDifference();
+                //console.log('first time getting diff 1', diff);
+                //diffServiceLocal.diff.subscribe((diff) => {
+                if (!diff) return;
+                console.log('first time getting diff 2', diff);
+
+                console.log('DIFF SET', diff);
+                console.log('difference length', diff.length);
+                console.log('slot value', slot_value);
+                if (diff !== null && diff.length < 1) {
+                  BotResponse =
+                    '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
+                    'There are no results corresponding to your request.' +
+                    '</p><div class="clearfix"></div>';
+                  $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
+                }
                 // console.log(
                 //   'set state service in local scope',
                 //   setStateServiceLocal,
@@ -584,46 +622,11 @@ export class ChatbotComponent implements OnInit {
                 //CONTINUE FROM HERE. YOU NEED TO IMPLEMENT THE SET DIFFERENCE NOW
                 // if (!diff) return;
 
-                //let diff = diffServiceLocal.getDifference();
-                //console.log('first time getting diff 1', diff);
-                diffServiceLocal.diff.subscribe((diff) => {
-                  if (!diff) return;
-                  console.log('first time getting diff 2', diff);
+                //diff !== null){
+                // console.log('IN DIFF BLOCK');
 
-                  //diff !== null){
-                  // console.log('IN DIFF BLOCK');
-                  console.log('DIFF SET', diff);
-                  console.log('difference length', diff.length);
-                  console.log('slot value', slot_value);
-                  if (diff.length < 1) {
-                    var BotResponse =
-                      '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
-                      'There are no results corresponding to your request.' +
-                      '</p><div class="clearfix"></div>';
-                    $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
-                  } else {
-                    console.log('IN ELSE 1');
-                    console.log('DIFF SET', diff);
-                    console.log('difference length', diff.length);
-                    if (!slot_value) {
-                      console.log('IN IF 1');
-                      var BotResponse =
-                        '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
-                        'Here are your results.' +
-                        '</p><div class="clearfix"></div>';
-                      $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
-                    } else {
-                      console.log('IN ELSE 2');
-                      var BotResponse =
-                        '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
-                        'Here are your results without ' +
-                        slot_value +
-                        '.' +
-                        '</p><div class="clearfix"></div>';
-                      $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
-                    }
-                  }
-                });
+                //diffServiceLocal.setDifference(null);
+                //});
               }
 
               //check of the custom payload type is "query_negative"

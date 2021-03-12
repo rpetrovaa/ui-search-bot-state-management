@@ -69,6 +69,10 @@ export class UISearchChatbotComponent implements OnInit {
   indexNext: number = 0;
 
   subscription: Subscription;
+  generalResults: any[];
+
+  counterEntires = 0;
+  endResults: any;
 
   constructor(
     private store: Store,
@@ -94,32 +98,32 @@ export class UISearchChatbotComponent implements OnInit {
 
             this.computeNegativeResults(this.requestNegative, this.counter);
 
-            if (this.subscription) {
-              this.subscription.unsubscribe();
-              console.log('unsubscribing in req NEG');
-            }
-            this.subscription = this.lastQuery$.subscribe((results) => {
-              console.log('subscribing in req NEG...');
-              if (!results) return;
-              this.lastResults = results;
-              let setDiff: PostResult[] = this.calculateSetDifference(
-                this.lastResults[0],
-                this.lastResults[1]
-              );
-              //console.log(setDiff);
-              if (!setDiff) return;
-              this.resultsDiff = [];
-              setDiff.forEach((res) => {
-                this.resultsDiff.push(res);
-              });
-            });
-            if (!this.resultsDiff) return;
-            //this.diffService.setDifference(this.resultsDiff);
-            //console.log('Setting DIFF RES', this.diffService.getDifference());
-            if (this.diffService.getDifference()) {
-              console.log('rendering after diff != null');
-              this.renderChatbotResultsFromMetaData(this.resultsDiff);
-            }
+            // if (this.subscription) {
+            //   this.subscription.unsubscribe();
+            //   console.log('unsubscribing in req NEG');
+            // }
+            // this.subscription = this.lastQuery$.subscribe((results) => {
+            //   console.log('subscribing in req NEG...');
+            //   if (!results) return;
+            //   this.lastResults = results;
+            //   let setDiff: PostResult[] = this.calculateSetDifference(
+            //     this.lastResults[0],
+            //     this.lastResults[1]
+            //   );
+            //   //console.log(setDiff);
+            //   if (!setDiff) return;
+            //   this.resultsDiff = [];
+            //   setDiff.forEach((res) => {
+            //     this.resultsDiff.push(res);
+            //   });
+            // });
+            // if (!this.resultsDiff) return;
+            // //this.diffService.setDifference(this.resultsDiff);
+            // //console.log('Setting DIFF RES', this.diffService.getDifference());
+            // if (this.diffService.getDifference()) {
+            //   console.log('rendering after diff != null');
+            //   this.renderChatbotResultsFromMetaData(this.resultsDiff);
+            // }
             // subscription.unsubscribe();
             // console.log('unsubscribing in req NEG...');
           }
@@ -166,43 +170,73 @@ export class UISearchChatbotComponent implements OnInit {
             this.stateExt
           );
 
-          if (this.subscription) {
-            this.subscription.unsubscribe();
-            console.log('unsubscribing in req ext');
-          }
-          this.subscription = this.lastQuery$.subscribe((results) => {
-            console.log('subscribing in req ext...');
-            console.log('counter:', this.counter);
-            if (!results) return;
-            this.lastResults = results;
-            if (this.counter > 0) {
-              console.log('IN 1nd part');
-              let intersect: PostResult[] = this.calculateSetIntersection(
-                this.lastResults[0],
-                this.lastResults[1]
-              );
-              //console.log(setDiff);
-              if (!intersect) return;
-              this.resultsIntersect = [];
-              intersect.forEach((res) => {
-                this.resultsIntersect.push(res);
-              });
-              if (!this.resultsIntersect) return;
-              this.renderChatbotResultsFromMetaData(this.resultsIntersect);
-            } else {
-              console.log('IN 2nd part');
-              if (this.lastResults[1] && this.lastResults[1].result) {
-                // console.log(this.lastResults[1].result);
-                this.renderChatbotResultsFromMetaData(
-                  this.lastResults[1].result
-                );
-                console.log('reset last results');
-                this.lastResults = [];
-              }
-            }
-          });
-          // subscription.unsubscribe();
-          // console.log('unsubscribing in req ext...');
+          // console.log('GENRAL 1', this.generalResults);
+          // if (this.generalResults) {
+          //   console.log('GENERAL 2', this.generalResults);
+          // }
+
+          //this.lastResults = results;
+          //       if (this.counter > 0) {
+          //         console.log('IN 1nd part');
+          //         let intersect: PostResult[] = this.calculateSetIntersection(
+          //           this.lastResults[0],
+          //           this.lastResults[1]
+          //         );
+          //         //console.log(setDiff);
+          //         if (!intersect) return;
+          //         this.resultsIntersect = [];
+          //         intersect.forEach((res) => {
+          //           this.resultsIntersect.push(res);
+          //         });
+          //         if (!this.resultsIntersect) return;
+          //         this.renderChatbotResultsFromMetaData(this.resultsIntersect);
+          //       } else {
+          //         console.log('IN 2nd part');
+          //         if (this.lastResults[1] && this.lastResults[1].result) {
+          //           // console.log(this.lastResults[1].result);
+          //           this.renderChatbotResultsFromMetaData(
+          //             this.lastResults[1].result
+          //           );
+          //           console.log('reset last results');
+          //           this.lastResults = [];
+          //         }
+          //     if (this.subscription) {
+          //       this.subscription.unsubscribe();
+          //       console.log('unsubscribing in req ext');
+          //     }
+          //     this.subscription = this.lastQuery$.subscribe((results) => {
+          //       console.log('subscribing in req ext...');
+          //       console.log('counter:', this.counter);
+          //       if (!results) return;
+          //       this.lastResults = results;
+          //       if (this.counter > 0) {
+          //         console.log('IN 1nd part');
+          //         let intersect: PostResult[] = this.calculateSetIntersection(
+          //           this.lastResults[0],
+          //           this.lastResults[1]
+          //         );
+          //         //console.log(setDiff);
+          //         if (!intersect) return;
+          //         this.resultsIntersect = [];
+          //         intersect.forEach((res) => {
+          //           this.resultsIntersect.push(res);
+          //         });
+          //         if (!this.resultsIntersect) return;
+          //         this.renderChatbotResultsFromMetaData(this.resultsIntersect);
+          //       } else {
+          //         console.log('IN 2nd part');
+          //         if (this.lastResults[1] && this.lastResults[1].result) {
+          //           // console.log(this.lastResults[1].result);
+          //           this.renderChatbotResultsFromMetaData(
+          //             this.lastResults[1].result
+          //           );
+          //           console.log('reset last results');
+          //           this.lastResults = [];
+          //         }
+          //       }
+          //     });
+          //     // subscription.unsubscribe();
+          //     // console.log('unsubscribing in req ext...');
         }
       });
       this.setActionService.requestExtended = null;
@@ -225,6 +259,103 @@ export class UISearchChatbotComponent implements OnInit {
       });
     }
 
+    this.lastQuery$.subscribe((results) => {
+      if (!results) return;
+
+      this.generalResults = results;
+      console.log('RESULTs', results);
+
+      //this.resultsIntersect = [];
+      // const primary = [];
+      // let resImgs = [];
+
+      // results.forEach((result) => {
+      //   result.result.forEach((element) => {
+      //     const index = element.index;
+      //     const url = '/ui/' + index + '.jpg';
+      //     primary.push(element);
+      //     resImgs.push(url);
+      //   });
+      // });
+
+      // if (!this.resultsIntersect && !primary && !resImgs) return;
+      // this.resultsIntersect = this.combineArrays(primary, resImgs);
+      // console.log('INTERSECTED', this.resultsIntersect);
+
+      if (this.requestExtended) {
+        console.log('COUNTER', this.counter);
+        if (this.counter > 0) {
+          console.log('IN 1nd part');
+          this.counterEntires += 1;
+          console.log('ENTERED FOR THE ' + this.counterEntires + ' TIME');
+
+          let intersect = this.calculateSetIntersection(
+            results[results.length - 2],
+            results[results.length - 1]
+          );
+          console.log('Calculataed intersection', intersect);
+          console.log('previ', results[results.length - 2].query);
+          console.log('curri', results[results.length - 1].query);
+          this.endResults = intersect;
+          //this.renderChatbotResultsFromMetaData(intersect);
+          //         let intersect: PostResult[] = this.calculateSetIntersection(
+          //           this.lastResults[0],
+          //           this.lastResults[1]
+          //         );
+          //         //console.log(setDiff);
+          //         if (!intersect) return;
+          //         this.resultsIntersect = [];
+          //         intersect.forEach((res) => {
+          //           this.resultsIntersect.push(res);
+          //         });
+          //         if (!this.resultsIntersect) return;
+          //         this.renderChatbotResultsFromMetaData(this.resultsIntersect);
+          //       } else {
+          //         console.log('IN 2nd part');
+          //         if (this.lastResults[1] && this.lastResults[1].result) {
+          //           // console.log(this.lastResults[1].result);
+          //           this.renderChatbotResultsFromMetaData(
+          //             this.lastResults[1].result
+          //           );
+          //           console.log('reset last results');
+          //           this.lastResults = [];
+          //         }
+        } else {
+          this.counterEntires += 1;
+          console.log('ENTERED FOR THE ' + this.counterEntires + ' TIME');
+          this.endResults = results[results.length - 1].result;
+          // this.renderChatbotResultsFromMetaData(
+          //   results[results.length - 1].result
+          // );
+        }
+        console.log('GENERAL', this.endResults);
+        this.renderChatbotResultsFromMetaData(this.endResults);
+        this.requestExtended = null;
+      }
+
+      if (this.requestNegative) {
+        let setDiff: PostResult[] = this.calculateSetDifference(
+          results[results.length - 2],
+          results[results.length - 1]
+        );
+        //console.log(setDiff);
+        // if (!setDiff) return;
+        // this.resultsDiff = [];
+        // setDiff.forEach((res) => {
+        //   this.resultsDiff.push(res);
+        // });
+
+        if (!setDiff) return;
+        //this.diffService.setDifference(this.resultsDiff);
+        //console.log('Setting DIFF RES', this.diffService.getDifference());
+        //if (this.diffService.getDifference()) {
+        //console.log('rendering after diff != null');
+        this.endResults = setDiff;
+        this.renderChatbotResultsFromMetaData(this.endResults);
+        this.requestNegative = null;
+        //}
+      }
+    });
     // this.snapshot = this.store.snapshot();
     // console.log('SNAPSHOT:', this.snapshot);
   }
@@ -308,27 +439,27 @@ export class UISearchChatbotComponent implements OnInit {
         counter: counter,
       })
     );
-    this.queryResults$.subscribe((results) => {
-      if (!results) return;
+    // this.queryResults$.subscribe((results) => {
+    //   if (!results) return;
 
-      console.log('results:', results);
+    //   console.log('results:', results);
 
-      this.resultsIntersect = [];
-      const primary = [];
-      let resImgs = [];
+    //   this.resultsIntersect = [];
+    //   const primary = [];
+    //   let resImgs = [];
 
-      results.forEach((result) => {
-        result.result.forEach((element) => {
-          const index = element.index;
-          const url = '/ui/' + index + '.jpg';
-          primary.push(element);
-          resImgs.push(url);
-        });
-      });
+    //   results.forEach((result) => {
+    //     result.result.forEach((element) => {
+    //       const index = element.index;
+    //       const url = '/ui/' + index + '.jpg';
+    //       primary.push(element);
+    //       resImgs.push(url);
+    //     });
+    //   });
 
-      if (!this.resultsIntersect && !primary && !resImgs) return;
-      this.resultsIntersect = this.combineArrays(primary, resImgs);
-    });
+    //   if (!this.resultsIntersect && !primary && !resImgs) return;
+    //   this.resultsIntersect = this.combineArrays(primary, resImgs);
+    // });
   }
 
   computeNextScreensResults(
@@ -403,7 +534,8 @@ export class UISearchChatbotComponent implements OnInit {
   }
 
   renderChatbotResultsFromMetaData(results: any) {
-    //console.log('is it null?', results);
+    console.log('is it null?', results);
+    console.log('Trying to render in results meta');
     if (!results) return;
 
     let query_results = results;
@@ -415,7 +547,7 @@ export class UISearchChatbotComponent implements OnInit {
     const primary = [];
 
     const top = this.getTopResults(results);
-    // console.log('TOP', top);
+    console.log('TOP', top);
 
     if (!top) return;
     top.forEach((result) => {
@@ -428,7 +560,7 @@ export class UISearchChatbotComponent implements OnInit {
     });
     if (!this.resultsMeta && !primary && !this.resultsImages) return;
     this.resultsMeta = this.combineArrays(primary, this.resultsImages);
-    //console.log('this.resultsMeta', this.resultsMeta);
+    console.log('this.resultsMeta', this.resultsMeta);
   }
 
   getUIs(data) {

@@ -207,12 +207,14 @@ export class QueryState {
 
         if (payload.requestType !== 'INITIAL') {
           console.log(
-            'request type in AfterIntersect',
+            'request type in AfterIntersect 1',
             state.queries[state.queries.length - 1].query.requestType
           );
+          console.log('request type in AfterIntersect 2', payload.requestType);
           // let diff = this.diffService.getDifference();
           let intersect = this.intersectService.getIntersection();
-
+          console.log('INTERSECT in STATE', intersect);
+          if (!intersect) return;
           dispatch(
             new AddExtendedQueryAfterInstersect(
               {
