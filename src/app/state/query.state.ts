@@ -285,7 +285,7 @@ export class QueryState {
               state.queries[state.queries.length - 1].query.postRequest,
             counter: query.counter,
           },
-          result: result,
+          result: state.queries[state.queries.length - 1].result,
         },
       ],
       // counter: (state.counter += 1),

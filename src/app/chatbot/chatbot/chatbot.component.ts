@@ -641,7 +641,7 @@ export class ChatbotComponent implements OnInit {
                 stateGlobal = RequestType.ADDITIVE;
 
                 setStateServiceLocal.setActionMoreScreens(
-                  null,
+                  postRequestService.createPostRequest('more screens'),
                   stateGlobal,
                   counterGlobal
                 );
@@ -651,9 +651,15 @@ export class ChatbotComponent implements OnInit {
                 //   addQueryNegative
                 // );
 
-                setStateServiceLocal.requestMoreScreens.subscribe((request) =>
-                  console.log('in chatbot', request)
-                );
+                if (setStateServiceLocal.requestMoreScreens) {
+                  setStateServiceLocal.requestMoreScreens.subscribe(
+                    (request) => {
+                      if (request) {
+                        console.log('in chatbot', request);
+                      }
+                    }
+                  );
+                }
 
                 counterGlobal += 1;
               }

@@ -51,6 +51,7 @@ export class UISearchChatbotComponent implements OnInit {
   request: PostRequest;
   requestNegative: PostRequest;
   requestExtended: PostRequest;
+  reuqestMoreScreens: PostRequest;
 
   resultsNegative: any;
   resultsDiff: PostResult[];
@@ -150,6 +151,8 @@ export class UISearchChatbotComponent implements OnInit {
     if (this.setActionService.requestExtended) {
       console.log('JUMPED IN REQUEST EXTENDED AS WELL');
       this.setActionService.requestExtended.subscribe((request) => {
+        console.log('IN SUBSCRIBE');
+        console.log('REQ', request);
         if (!request) return;
         this.requestExtended = request.postRequest;
         // console.log('STATE', this.stateExt);
@@ -243,20 +246,31 @@ export class UISearchChatbotComponent implements OnInit {
     }
 
     if (this.setActionService.requestMoreScreens) {
-      // console.log('more', this.setActionService.requestMoreScreens);
+      console.log('IS THERE SOMETHING IN REQ MORE SCREENS');
+      console.log('more', this.setActionService.requestMoreScreens);
       this.setActionService.requestMoreScreens.subscribe((request) => {
         if (!request) return;
+        this.reuqestMoreScreens = request.postRequest;
         // console.log('STATE', this.stateExt);
         // console.log(request.requestType);
         this.stateExt = RequestType[request.requestType];
         this.counter = request.counter;
 
-        this.computeNextScreensResults(
-          this.requestExtended,
-          this.counter,
-          this.stateExt
+        if (!this.stateExt) return;
+        if (!this.counter) return;
+        this.store.dispatch(
+          new AddNextScreens(
+            {
+              query: null,
+              requestType: this.stateExt,
+              postRequest: null,
+              counter: this.counter,
+            },
+            null
+          )
         );
       });
+      this.setActionService.requestMoreScreens = null;
     }
 
     this.lastQuery$.subscribe((results) => {
@@ -355,6 +369,28 @@ export class UISearchChatbotComponent implements OnInit {
         this.requestNegative = null;
         //}
       }
+
+      if (this.reuqestMoreScreens) {
+        this.nextResults = [];
+
+        console.log(
+          'what is the original value',
+          results[results.length - 1].result
+        );
+
+        // console.log('LAST RES', this.lastResults);
+
+        this.nextResults = this.getNextTopResults(
+          results[results.length - 1].result
+        );
+
+        // console.log('NEXT RES: ', this.nextResults);
+
+        // console.log('next res', this.nextResults);
+
+        if (!this.nextResults) return;
+        this.renderChatbotResultsFromMetaData(this.nextResults);
+      }
     });
     // this.snapshot = this.store.snapshot();
     // console.log('SNAPSHOT:', this.snapshot);
@@ -405,25 +441,25 @@ export class UISearchChatbotComponent implements OnInit {
         counter: counter,
       })
     );
-    this.queryResults$.subscribe((results) => {
-      if (!results) return;
+    // this.queryResults$.subscribe((results) => {
+    //   if (!results) return;
 
-      this.resultsNegative = [];
-      const primary = [];
-      let resImgs = [];
+    //   this.resultsNegative = [];
+    //   const primary = [];
+    //   let resImgs = [];
 
-      results.forEach((result) => {
-        result.result.forEach((element) => {
-          const index = element.index;
-          const url = '/ui/' + index + '.jpg';
-          primary.push(element);
-          resImgs.push(url);
-        });
-      });
+    //   results.forEach((result) => {
+    //     result.result.forEach((element) => {
+    //       const index = element.index;
+    //       const url = '/ui/' + index + '.jpg';
+    //       primary.push(element);
+    //       resImgs.push(url);
+    //     });
+    //   });
 
-      if (!this.resultsNegative && !primary && !resImgs) return;
-      this.resultsNegative = this.combineArrays(primary, resImgs);
-    });
+    //   if (!this.resultsNegative && !primary && !resImgs) return;
+    //   this.resultsNegative = this.combineArrays(primary, resImgs);
+    // });
   }
 
   computeExtendedResults(
@@ -487,6 +523,7 @@ export class UISearchChatbotComponent implements OnInit {
           counter: counter,
         },
         this.lastResults[1].result
+        //result[result.length - 1]
       )
     );
 
@@ -687,6 +724,7 @@ export class UISearchChatbotComponent implements OnInit {
 
   //get top 20 results
   getTopResults(metaResults: any[]) {
+    console.log('in top results', metaResults);
     if (!metaResults) return;
     let top = [];
     for (let i = 0; i < 20; i++) {
@@ -696,8 +734,9 @@ export class UISearchChatbotComponent implements OnInit {
   }
 
   getNextTopResults(metaResults: any[]) {
+    console.log('in next results', metaResults);
     if (!metaResults) return;
-    // console.log('NEXT INDEX', this.indexNext);
+    console.log('NEXT INDEX', this.indexNext);
     let top = [];
     for (let i = this.indexNext + 20; i < this.indexNext + 40; i++) {
       //console.log('i: ', i);
