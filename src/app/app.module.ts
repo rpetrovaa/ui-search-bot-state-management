@@ -28,6 +28,7 @@ import { ImageDialogComponent } from './image-dialog/image-dialog.component';
 import { InstructionsComponent } from './instructions/instructions.component';
 import { NavBarComponent } from './shared/nav-bar/nav-bar.component';
 import { UISearchChatbotComponent } from './ui-search-chatbot/ui-search-chatbot.component';
+import { InstructionsDialogComponent } from './shared/instructions-dialog/instructions-dialog.component';
 
 @NgModule({
   imports: [
@@ -57,6 +58,7 @@ import { UISearchChatbotComponent } from './ui-search-chatbot/ui-search-chatbot.
     InstructionsComponent,
     NavBarComponent,
     UISearchChatbotComponent,
+    InstructionsDialogComponent,
   ],
   providers: [Gui2wireApiService, PostRequestService, SetStateService],
   bootstrap: [AppComponent],

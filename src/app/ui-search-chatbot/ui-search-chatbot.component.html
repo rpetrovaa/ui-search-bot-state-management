@@ -26,7 +26,12 @@
   </div>
 </div>
 
+<div *ngIf="noResults" style="margin-left: 50px; margin-top: 50px">
+  <h4>There are no results corresponding to your request.</h4>
+</div>
+
 <div *ngIf="resultsMeta" id="main">
+  <div>{{ noResults }}</div>
   <mat-grid-list cols="3" rowHeight="600px">
     <mat-grid-tile *ngFor="let item of resultsMeta; index as i" id="results">
       <mat-card class="example-card" (click)="openImageDialog(item.screenURL)">

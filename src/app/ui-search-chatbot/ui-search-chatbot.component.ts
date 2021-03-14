@@ -75,6 +75,8 @@ export class UISearchChatbotComponent implements OnInit {
   counterEntires = 0;
   endResults: any;
 
+  noResults: boolean = false;
+
   constructor(
     private store: Store,
     private service: Gui2wireApiService,
@@ -91,6 +93,7 @@ export class UISearchChatbotComponent implements OnInit {
       });
     } else {
       if (this.setActionService.requestNegative) {
+        this.indexNext = 0;
         this.setActionService.requestNegative.subscribe((request) => {
           if (!request) return;
           this.requestNegative = request.postRequest;
@@ -149,6 +152,7 @@ export class UISearchChatbotComponent implements OnInit {
     }
 
     if (this.setActionService.requestExtended) {
+      this.indexNext = 0;
       console.log('JUMPED IN REQUEST EXTENDED AS WELL');
       this.setActionService.requestExtended.subscribe((request) => {
         console.log('IN SUBSCRIBE');
@@ -303,6 +307,13 @@ export class UISearchChatbotComponent implements OnInit {
           this.counterEntires += 1;
           console.log('ENTERED FOR THE ' + this.counterEntires + ' TIME');
 
+          //if there were no results from the prev. query, reset state to INITIAL. Otherwise itersect will not be computed for the two following requests and the code will break
+          //if there were no results from the prev. query, reset state to INITAL. Otherwise itersect will not be computed for the two following requests and the code will break
+          if (!results[results.length - 1].length) {
+            console.log(true);
+            this.counter = 0;
+          }
+
           let intersect = this.calculateSetIntersection(
             results[results.length - 2],
             results[results.length - 1]
@@ -352,25 +363,39 @@ export class UISearchChatbotComponent implements OnInit {
           results[results.length - 2],
           results[results.length - 1]
         );
-        //console.log(setDiff);
+
+        //if there were no results from the prev. query, reset state to INITAL. Otherwise itersect will not be computed for the two following requests and the code will break
+        if (!results[results.length - 1].length) {
+          console.log(true);
+          this.counter = 0;
+        }
+
+        console.log('SetDiff', setDiff);
         // if (!setDiff) return;
         // this.resultsDiff = [];
         // setDiff.forEach((res) => {
         //   this.resultsDiff.push(res);
         // });
 
-        if (!setDiff) return;
         //this.diffService.setDifference(this.resultsDiff);
         //console.log('Setting DIFF RES', this.diffService.getDifference());
         //if (this.diffService.getDifference()) {
         //console.log('rendering after diff != null');
         this.endResults = setDiff;
         this.renderChatbotResultsFromMetaData(this.endResults);
+        if (this.endResults.length === 0) {
+          this.noResults = true;
+        }
         this.requestNegative = null;
+        this.noResults = true;
         //}
       }
 
       if (this.reuqestMoreScreens) {
+        if (this.counter < 1) {
+          this.noResults = true;
+          this.counter = 0;
+        }
         this.nextResults = [];
 
         console.log(
@@ -388,8 +413,13 @@ export class UISearchChatbotComponent implements OnInit {
 
         // console.log('next res', this.nextResults);
 
-        if (!this.nextResults) return;
+        if (this.nextResults.length === 0) {
+          this.noResults = true;
+          this.counter = 0;
+        }
         this.renderChatbotResultsFromMetaData(this.nextResults);
+        this.reuqestMoreScreens = null;
+        this.noResults = false;
       }
     });
     // this.snapshot = this.store.snapshot();
@@ -662,7 +692,7 @@ export class UISearchChatbotComponent implements OnInit {
     // console.log('the diff', diff);
     if (!diff) return;
 
-    if (diff.length < 20 && diff.length > 1) {
+    if (diff.length < 20 && diff.length >= 1) {
       console.log(
         'Diffren was smaller than 20 and bigger than 1. Calculating new intersect'
       );
@@ -693,7 +723,7 @@ export class UISearchChatbotComponent implements OnInit {
     // console.log('the intersect', intersect);
     if (!intersect) return;
 
-    if (intersect.length < 20 && intersect.length > 1) {
+    if (intersect.length < 20 && intersect.length >= 1) {
       console.log(
         'Intersect was smaller than 20 and bigger than 1. Calculating new intersect'
       );
