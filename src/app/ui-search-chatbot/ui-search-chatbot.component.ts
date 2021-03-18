@@ -19,6 +19,7 @@ import { SetStateService } from '../services/set-state.service';
 import { API } from '../model/api';
 import { DiffService } from '../services/diff.service';
 import { IntersectService } from '../services/intersect.service';
+import { SetNoResponseService } from '../services/set-no-response.service';
 
 @Component({
   selector: 'app-ui-search-chatbot',
@@ -83,7 +84,8 @@ export class UISearchChatbotComponent implements OnInit {
     private setActionService: SetStateService,
     private diffService: DiffService,
     private intersectService: IntersectService,
-    public dialog: MatDialog
+    public dialog: MatDialog,
+    public setNoResultsService: SetNoResponseService
   ) {}
 
   ngOnInit() {
@@ -99,7 +101,11 @@ export class UISearchChatbotComponent implements OnInit {
           this.requestNegative = request.postRequest;
           if (this.requestNegative) {
             // console.log('requestNegative is not undefined');
-
+            if (this.noResults) {
+              this.setNoResultsService.setNoResultsFlag(false);
+              this.noResults = this.setNoResultsService.getNoResultsFlag();
+              console.log('no results?', this.noResults);
+            }
             this.computeNegativeResults(this.requestNegative, this.counter);
 
             // if (this.subscription) {
@@ -159,6 +165,12 @@ export class UISearchChatbotComponent implements OnInit {
         console.log('REQ', request);
         if (!request) return;
         this.requestExtended = request.postRequest;
+
+        if (this.noResults) {
+          this.setNoResultsService.setNoResultsFlag(false);
+          this.noResults = this.setNoResultsService.getNoResultsFlag();
+          console.log('no results?', this.noResults);
+        }
         // console.log('STATE', this.stateExt);
         // console.log(request.requestType);
         this.stateExt = RequestType[request.requestType];
@@ -255,6 +267,12 @@ export class UISearchChatbotComponent implements OnInit {
       this.setActionService.requestMoreScreens.subscribe((request) => {
         if (!request) return;
         this.reuqestMoreScreens = request.postRequest;
+
+        if (this.noResults) {
+          this.setNoResultsService.setNoResultsFlag(false);
+          this.noResults = this.setNoResultsService.getNoResultsFlag();
+          console.log('no results?', this.noResults);
+        }
         // console.log('STATE', this.stateExt);
         // console.log(request.requestType);
         this.stateExt = RequestType[request.requestType];
@@ -364,6 +382,9 @@ export class UISearchChatbotComponent implements OnInit {
           results[results.length - 1]
         );
 
+        this.noResults = this.setNoResultsService.getNoResultsFlag();
+        console.log('no results?', this.noResults);
+
         //if there were no results from the prev. query, reset state to INITAL. Otherwise itersect will not be computed for the two following requests and the code will break
         if (!results[results.length - 1].length) {
           console.log(true);
@@ -383,11 +404,12 @@ export class UISearchChatbotComponent implements OnInit {
         //console.log('rendering after diff != null');
         this.endResults = setDiff;
         this.renderChatbotResultsFromMetaData(this.endResults);
-        if (this.endResults.length === 0) {
-          this.noResults = true;
-        }
+        // if (this.endResults.length === 0) {
+        //   this.noResults = true;
+        // }
         this.requestNegative = null;
-        this.noResults = true;
+
+        //this.noResults = true;
         //}
       }
 
@@ -690,8 +712,13 @@ export class UISearchChatbotComponent implements OnInit {
       ({ index: id1 }) => !setB.result.some(({ index: id2 }) => id2 === id1)
     );
     // console.log('the diff', diff);
-    if (!diff) return;
+    if (diff.length === 0) {
+      //  this.noResults = true;
+      this.setNoResultsService.setNoResultsFlag(true);
+      return;
+    }
 
+    // this.noResults = false;
     if (diff.length < 20 && diff.length >= 1) {
       console.log(
         'Diffren was smaller than 20 and bigger than 1. Calculating new intersect'
@@ -721,7 +748,11 @@ export class UISearchChatbotComponent implements OnInit {
       setB.result.some(({ index: id2 }) => id2 === id1)
     );
     // console.log('the intersect', intersect);
-    if (!intersect) return;
+    if (intersect.length === 0) {
+      //  this.noResults = true;
+      this.setNoResultsService.setNoResultsFlag(true);
+      return;
+    }
 
     if (intersect.length < 20 && intersect.length >= 1) {
       console.log(

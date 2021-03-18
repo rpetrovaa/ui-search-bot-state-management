@@ -65,7 +65,7 @@ export class ChatbotComponent implements OnInit {
 
     if (!this.diffService.diff) return;
     this.diffService.diff.subscribe((diff) => {
-      if (!diff) return;
+      // if (!diff) return;
       this.diff = diff;
       console.log('subscribed diff in chatbot');
     });
@@ -313,6 +313,7 @@ export class ChatbotComponent implements OnInit {
       //display bot response after 500 milliseconds
       setTimeout(function () {
         hideBotTyping();
+        console.log('bot response BEFORE:', response);
         if (response.length < 1) {
           //if there is no response from Rasa, send  fallback message to the user
           var fallbackMsg =
@@ -329,7 +330,7 @@ export class ChatbotComponent implements OnInit {
         } else {
           //if we get response from Rasa
           for (let i = 0; i < response.length; i++) {
-            // console.log('bot response:', response);
+            console.log('bot response:', response);
             //check if the response contains "text"
             if (response[i].hasOwnProperty('text')) {
               var BotResponse =
@@ -504,18 +505,18 @@ export class ChatbotComponent implements OnInit {
 
                 //CONTINUE FROM HERE. YOU NEED TO IMPLEMENT THE SET DIFFERENCE NOW
 
-                let intersect = intersectServiceLocal.getIntersection();
-                //let diff = diffServiceLocal.getDifference();
-                // console.log('DIFF in BOt Comp', diff);
+                // let intersect = intersectServiceLocal.getIntersection();
+                // //let diff = diffServiceLocal.getDifference();
+                // // console.log('DIFF in BOt Comp', diff);
 
-                if (intersect !== null && intersect.length < 1) {
-                  // console.log('IN INTERSECT BLOCK');
-                  BotResponse =
-                    '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
-                    'There are no results corresponding to your request.' +
-                    '</p><div class="clearfix"></div>';
-                  $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
-                }
+                // if (intersect !== null && intersect.length < 1) {
+                //   // console.log('IN INTERSECT BLOCK');
+                //   BotResponse =
+                //     '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
+                //     'There are no results corresponding to your request.' +
+                //     '</p><div class="clearfix"></div>';
+                //   $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
+                // }
 
                 counterGlobal += 1;
 
@@ -595,22 +596,22 @@ export class ChatbotComponent implements OnInit {
                   counterGlobal
                 );
 
-                let diff = diffServiceLocal.getDifference();
-                //console.log('first time getting diff 1', diff);
-                //diffServiceLocal.diff.subscribe((diff) => {
-                if (!diff) return;
-                console.log('first time getting diff 2', diff);
+                // let diff = diffServiceLocal.getDifference();
+                // //console.log('first time getting diff 1', diff);
+                // //diffServiceLocal.diff.subscribe((diff) => {
+                // if (!diff) return;
+                // console.log('first time getting diff 2', diff);
 
-                console.log('DIFF SET', diff);
-                console.log('difference length', diff.length);
-                console.log('slot value', slot_value);
-                if (diff !== null && diff.length < 1) {
-                  BotResponse =
-                    '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
-                    'There are no results corresponding to your request.' +
-                    '</p><div class="clearfix"></div>';
-                  $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
-                }
+                // console.log('DIFF SET', diff);
+                // console.log('difference length', diff.length);
+                // console.log('slot value', slot_value);
+                // if (diff !== null && diff.length < 1) {
+                //   BotResponse =
+                //     '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
+                //     'There are no results corresponding to your request.' +
+                //     '</p><div class="clearfix"></div>';
+                //   $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
+                // }
                 // console.log(
                 //   'set state service in local scope',
                 //   setStateServiceLocal,
@@ -645,21 +646,6 @@ export class ChatbotComponent implements OnInit {
                   stateGlobal,
                   counterGlobal
                 );
-                // console.log(
-                //   'set state service in local scope',
-                //   setStateServiceLocal,
-                //   addQueryNegative
-                // );
-
-                if (setStateServiceLocal.requestMoreScreens) {
-                  setStateServiceLocal.requestMoreScreens.subscribe(
-                    (request) => {
-                      if (request) {
-                        console.log('in chatbot', request);
-                      }
-                    }
-                  );
-                }
 
                 counterGlobal += 1;
               }
