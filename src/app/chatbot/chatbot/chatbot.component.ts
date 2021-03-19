@@ -39,12 +39,6 @@ export class ChatbotComponent implements OnInit {
     private diffService: DiffService,
     private intersectService: IntersectService
   ) {
-    // if (!this.setStateService.request) return;
-    // this.setStateService.request.subscribe((request) => {
-    //   this.request = request.postRequest;
-    //   this.state = request.requestType;
-    // });
-
     if (!this.setStateService.requestNegative) return;
     this.setStateService.requestNegative.subscribe((requestNegative) => {
       this.requestNegative = requestNegative.postRequest;
@@ -75,12 +69,6 @@ export class ChatbotComponent implements OnInit {
       this.intersect = intersect;
       console.log('subscribed intersect in chatbot');
     });
-
-    // if (!this.diffService.getDifference()) return;
-    // this.diff = this.diffService.getDifference();
-    // this.diffService.diff.subscribe((diff) => {
-    //   this.diff = diff;
-    // });
 
     this.lastQuery$.subscribe((results) => (this.lastResults = results));
   }
@@ -272,12 +260,6 @@ export class ChatbotComponent implements OnInit {
 
           messageGlobal = message;
 
-          // if (stateGlobal !== undefined && !messageGlobal.includes('yes')) {
-          //   stateGlobal = RequestType.ADDITIVE;
-          // } else {
-          //   stateGlobal = RequestType.INITIAL;
-          // }
-
           if (
             botResponse !== undefined &&
             botResponse[0].text == 'What other screens would you like to have?'
@@ -372,71 +354,6 @@ export class ChatbotComponent implements OnInit {
                 return;
               }
 
-              // //check of the custom payload type is "query"
-              // if (response[i].custom.payload == 'query') {
-              //   // console.log(
-              //   //   'inside response is there slot?:',
-              //   //   response[i].custom
-              //   // );
-              //   if (!messageGlobal) {
-              //     // console.log('messageGlobal still undefined and returning');
-              //     return;
-              //   }
-
-              //   let slot_value = response[i].custom.data.text.query;
-
-              //   if (!slot_value) {
-              //     // console.log('slot value is undefined');
-              //     requestGlobal = postRequestService.createPostRequest(
-              //       messageGlobal
-              //     );
-              //   } else {
-              //     requestGlobal = postRequestService.createPostRequest(
-              //       slot_value
-              //     );
-              //   }
-
-              //   if (!requestGlobal) {
-              //     // console.log('still undefined and returning');
-              //     return;
-              //   }
-
-              //   // console.log('state global', stateGlobal);
-              //   if (counterGlobal === 0) {
-              //     stateGlobal = RequestType.INITIAL;
-              //     counterGlobal += 1;
-              //   } else {
-              //     stateGlobal = RequestType.ADDITIVE;
-              //     counterGlobal += 1;
-              //   }
-
-              //   let addQuery = setStateServiceLocal.setAction(
-              //     requestGlobal,
-              //     stateGlobal
-              //   );
-              //   // console.log(
-              //   //   'set state service in local scope',
-              //   //   setStateServiceLocal,
-              //   //   addQuery
-              //   // );
-
-              //   if (!slot_value) {
-              //     var BotResponse =
-              //       '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
-              //       'Here are your results.' +
-              //       '</p><div class="clearfix"></div>';
-              //     $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
-              //   } else {
-              //     var BotResponse =
-              //       '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
-              //       'Here are your ' +
-              //       slot_value +
-              //       ' results.' +
-              //       '</p><div class="clearfix"></div>';
-              //     $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
-              //   }
-              // }
-
               //check of the custom payload type is "query_extended"
               if (response[i].custom.payload == 'query_extended') {
                 // console.log(
@@ -497,53 +414,11 @@ export class ChatbotComponent implements OnInit {
                   stateGlobal,
                   counterGlobal
                 );
-                // console.log(
-                //   'set state service in local scope',
-                //   setStateServiceLocal,
-                //   addQueryNegative
-                // );
-
-                //CONTINUE FROM HERE. YOU NEED TO IMPLEMENT THE SET DIFFERENCE NOW
-
-                // let intersect = intersectServiceLocal.getIntersection();
-                // //let diff = diffServiceLocal.getDifference();
-                // // console.log('DIFF in BOt Comp', diff);
-
-                // if (intersect !== null && intersect.length < 1) {
-                //   // console.log('IN INTERSECT BLOCK');
-                //   BotResponse =
-                //     '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
-                //     'There are no results corresponding to your request.' +
-                //     '</p><div class="clearfix"></div>';
-                //   $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
-                // }
-
                 counterGlobal += 1;
-
-                // else if (counterGlobal === 0) {
-                //   var BotResponse =
-                //     '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
-                //     'Here are your results.' +
-                //     '</p><div class="clearfix"></div>';
-                //   $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
-                // } else {
-                //   var BotResponse =
-                //     '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
-                //     'Here are your results with ' +
-                //     slot_value +
-                //     '.' +
-                //     '</p><div class="clearfix"></div>';
-                //   $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
-                // }
               }
 
               //check of the custom payload type is "query_negative"
               if (response[i].custom.payload == 'query_negative') {
-                // console.log(
-                //   'inside response is there slot?:',
-                //   response[i].custom
-                // );
-                // console.log('just the response:', response[i]);
                 if (counterGlobal === 0) return;
                 if (!messageGlobal) {
                   // console.log('messageGlobal still undefined and returning');
@@ -596,49 +471,11 @@ export class ChatbotComponent implements OnInit {
                   counterGlobal
                 );
 
-                // let diff = diffServiceLocal.getDifference();
-                // //console.log('first time getting diff 1', diff);
-                // //diffServiceLocal.diff.subscribe((diff) => {
-                // if (!diff) return;
-                // console.log('first time getting diff 2', diff);
-
-                // console.log('DIFF SET', diff);
-                // console.log('difference length', diff.length);
-                // console.log('slot value', slot_value);
-                // if (diff !== null && diff.length < 1) {
-                //   BotResponse =
-                //     '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
-                //     'There are no results corresponding to your request.' +
-                //     '</p><div class="clearfix"></div>';
-                //   $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
-                // }
-                // console.log(
-                //   'set state service in local scope',
-                //   setStateServiceLocal,
-                //   addQueryNegative
-                // );
-
                 counterGlobal += 1;
-
-                //CONTINUE FROM HERE. YOU NEED TO IMPLEMENT THE SET DIFFERENCE NOW
-                // if (!diff) return;
-
-                //diff !== null){
-                // console.log('IN DIFF BLOCK');
-
-                //diffServiceLocal.setDifference(null);
-                //});
               }
 
               //check of the custom payload type is "query_negative"
               if (response[i].custom.payload == 'more_screens') {
-                // console.log(
-                //   'inside response is there slot?:',
-                //   response[i].custom
-                // );
-                // console.log('just the response:', response[i]);
-                // console.log('in chatbot accessing more screens');
-
                 stateGlobal = RequestType.ADDITIVE;
 
                 setStateServiceLocal.setActionMoreScreens(
