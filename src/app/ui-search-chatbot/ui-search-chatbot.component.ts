@@ -20,6 +20,8 @@ import { API } from '../model/api';
 import { DiffService } from '../services/diff.service';
 import { IntersectService } from '../services/intersect.service';
 import { SetNoResponseService } from '../services/set-no-response.service';
+import { InstructionsDialogComponent } from '../shared/instructions-dialog/instructions-dialog.component';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-ui-search-chatbot',
@@ -77,6 +79,7 @@ export class UISearchChatbotComponent implements OnInit {
   endResults: any;
 
   noResults: boolean = false;
+  routeQueryParams$: Subscription;
 
   constructor(
     private store: Store,
@@ -85,10 +88,16 @@ export class UISearchChatbotComponent implements OnInit {
     private diffService: DiffService,
     private intersectService: IntersectService,
     public dialog: MatDialog,
-    public setNoResultsService: SetNoResponseService
+    public setNoResultsService: SetNoResponseService,
+    private route: ActivatedRoute,
+    private router: Router
   ) {}
 
   ngOnInit() {
+    this.routeQueryParams$ = this.route.queryParams.subscribe((params) => {
+      params = params['dialog'];
+      this.openDialog();
+    });
     if (this.mode_searchUI === true) {
       this.searchForm = new FormGroup({
         value: new FormControl('login'),
@@ -254,15 +263,21 @@ export class UISearchChatbotComponent implements OnInit {
           results[results.length - 1].result
         );
 
-        if (this.nextResults.length === 0) {
-          this.noResults = true;
-          this.counter = 0;
-        }
+        // if (this.nextResults.length === 0) {
+        //   this.noResults = true;
+        //   this.counter = 0;
+        // }
+        if (!this.nextResults) return;
         this.renderChatbotResultsFromMetaData(this.nextResults);
+        this.counter = this.counter + 1;
         this.reuqestMoreScreens = null;
         this.noResults = false;
       }
     });
+  }
+
+  ngOnDestroy() {
+    this.routeQueryParams$.unsubscribe();
   }
 
   sendRequest() {
@@ -491,7 +506,8 @@ export class UISearchChatbotComponent implements OnInit {
       console.log(
         'Diffren was smaller than 20 and bigger than 1. Calculating new intersect'
       );
-      diff = [...setA.result, ...diff].sort((a, b) => {
+      diff = new Set([...setA.result, ...diff]);
+      diff = [...diff].sort((a, b) => {
         if (b.score < a.score) {
           return -1;
         }
@@ -524,7 +540,8 @@ export class UISearchChatbotComponent implements OnInit {
       console.log(
         'Intersect was smaller than 20 and bigger than 1. Calculating new intersect'
       );
-      intersect = [...setA.result, ...intersect].sort((a, b) => {
+      intersect = new Set([...setA.result, ...intersect]);
+      intersect = [...intersect].sort((a, b) => {
         if (b.score < a.score) {
           return -1;
         }
@@ -562,14 +579,40 @@ export class UISearchChatbotComponent implements OnInit {
 
   getNextTopResults(metaResults: any[]) {
     console.log('in next results', metaResults);
-    if (!metaResults) return;
+    if (!metaResults) {
+      this.noResults = true;
+      this.counter = 0;
+      return;
+    }
+
+    let iter_start = this.indexNext + 20;
+    let iter_end = this.indexNext + 40;
+
+    if (iter_start > metaResults.length) {
+      this.noResults = true;
+      this.counter = 0;
+      return;
+    }
+
+    if (metaResults.length > 20 && metaResults.length < iter_end) {
+      iter_end = metaResults.length - 1;
+    }
+
     console.log('NEXT INDEX', this.indexNext);
     let top = [];
-    for (let i = this.indexNext + 20; i < this.indexNext + 40; i++) {
+    for (let i = iter_start; i < iter_end; i++) {
       //console.log('i: ', i);
       top.push(metaResults[i]);
     }
     this.indexNext = this.indexNext + 20;
     return top;
+  }
+
+  openDialog() {
+    const dialogRef = this.dialog.open(InstructionsDialogComponent);
+
+    dialogRef.afterClosed().subscribe((result) => {
+      console.log(`Dialog result: ${result}`);
+    });
   }
 }

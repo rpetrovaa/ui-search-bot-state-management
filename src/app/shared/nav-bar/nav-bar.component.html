@@ -13,7 +13,13 @@
     <a mat-button routerLink="" style="padding-right: 1rem"> Search UIs </a>
   </div>
   <div>
-    <a mat-button routerLink="/instructions" style="padding-right: 1rem">
+    <!-- <a mat-button routerLink="/instructions" style="padding-right: 1rem"> -->
+    <a
+      mat-button
+      routerLink=""
+      [queryParams]="{ dialog: true }"
+      style="padding-right: 1rem"
+    >
       Instructions
     </a>
   </div>

@@ -260,16 +260,17 @@ export class ChatbotComponent implements OnInit {
 
           messageGlobal = message;
 
-          if (
-            botResponse !== undefined &&
-            botResponse[0].text == 'What other screens would you like to have?'
-          ) {
-            if (message.includes('yes')) {
-              counterGlobal = 0;
-              // console.log('RESETTING COUNTER');
-            }
-          }
-
+          // =====================================
+          // if (
+          //   botResponse !== undefined &&
+          //   botResponse[0].text == 'What other screens would you like to have?'
+          // ) {
+          //   if (message.includes('yes')) {
+          //     counterGlobal = 0;
+          //     // console.log('RESETTING COUNTER');
+          //   }
+          // }
+          // ===============================
           setBotResponse(botResponse);
         },
         error: function (xhr, textStatus, errorThrown) {
@@ -383,10 +384,22 @@ export class ChatbotComponent implements OnInit {
                   return;
                 }
 
-                var BotResponse = '';
-
                 if (counterGlobal === 0) {
                   stateGlobal = RequestType.INITIAL;
+                } else {
+                  stateGlobal = RequestType.ADDITIVE;
+                }
+
+                var BotResponse = '';
+
+                if (!slot_value) {
+                  console.log('IN IF 1');
+                  BotResponse =
+                    '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
+                    'Here are your results.' +
+                    '</p><div class="clearfix"></div>';
+                  $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
+                } else {
                   // counterGlobal += 1;
                   BotResponse =
                     '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
@@ -395,16 +408,15 @@ export class ChatbotComponent implements OnInit {
                     ' results.' +
                     '</p><div class="clearfix"></div>';
                   $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
-                } else {
-                  stateGlobal = RequestType.ADDITIVE;
+
                   // counterGlobal += 1;
-                  BotResponse =
-                    '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
-                    'Here are your results with ' +
-                    slot_value +
-                    '.' +
-                    '</p><div class="clearfix"></div>';
-                  $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
+                  // BotResponse =
+                  //   '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
+                  //   'Here are your results with ' +
+                  //   slot_value +
+                  //   '.' +
+                  //   '</p><div class="clearfix"></div>';
+                  // $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
                 }
 
                 stateExtGLobal = RequestType.ADDITIVE;
@@ -485,6 +497,12 @@ export class ChatbotComponent implements OnInit {
                 );
 
                 counterGlobal += 1;
+              }
+
+              //reset state back to "INITIAL" on requesting more screens
+              if (response[i].custom.payload == 'reset_state') {
+                counterGlobal = 0;
+                console.log('RESETTING COUNTER');
               }
             }
           }

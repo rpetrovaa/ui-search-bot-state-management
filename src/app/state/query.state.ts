@@ -16,6 +16,7 @@ import { dispatch } from 'rxjs/internal/observable/pairs';
 import { PostRequest } from '../classes/post';
 import { DiffService } from '../services/diff.service';
 import { IntersectService } from '../services/intersect.service';
+import { SetNoResponseService } from '../services/set-no-response.service';
 
 export class QueryStateModel {
   queries: QueryResult[];
@@ -34,7 +35,8 @@ export class QueryState {
   constructor(
     private queryService: Gui2wireApiService,
     private diffService: DiffService,
-    private intersectService: IntersectService
+    private intersectService: IntersectService,
+    private SetNoResponseService: SetNoResponseService
   ) {}
 
   @Selector()
@@ -101,41 +103,48 @@ export class QueryState {
     const state = getState();
     return this.queryService.post('/api', payload.postRequest).pipe(
       take(1),
-      tap((result) => {
-        if (!result) return;
-        // console.log('Result in b4 neg', result);
-        setState({
-          queries: [
-            ...state.queries,
-            {
-              query: {
-                query: payload.query,
-                requestType: payload.requestType,
-                postRequest: payload.postRequest,
-                counter: payload.counter,
-              },
-              result: result.results,
-            },
-          ],
-          // counter: (state.counter += 1),
-        });
-        let diff = this.diffService.getDifference();
-        console.log('diff in STATE 1', diff);
-        if (diff) {
-          console.log('diff in STATE 2', diff);
-          dispatch(
-            new AddNegativeQueryAfterDiff(
+      tap(
+        (result) => {
+          if (!result) return;
+          // console.log('Result in b4 neg', result);
+          setState({
+            queries: [
+              ...state.queries,
               {
-                query: payload.query,
-                requestType: payload.requestType,
-                postRequest: payload.postRequest,
-                counter: payload.counter,
+                query: {
+                  query: payload.query,
+                  requestType: payload.requestType,
+                  postRequest: payload.postRequest,
+                  counter: payload.counter,
+                },
+                result: result.results,
               },
-              diff
-            )
-          );
+            ],
+            // counter: (state.counter += 1),
+          });
+          let diff = this.diffService.getDifference();
+          console.log('diff in STATE 1', diff);
+          if (diff) {
+            console.log('diff in STATE 2', diff);
+            dispatch(
+              new AddNegativeQueryAfterDiff(
+                {
+                  query: payload.query,
+                  requestType: payload.requestType,
+                  postRequest: payload.postRequest,
+                  counter: payload.counter,
+                },
+                diff
+              )
+            );
+          }
+        },
+        (error) => {
+          //Error callback
+          console.error('error caught in component');
+          throw error;
         }
-      })
+      )
     );
   }
 
@@ -171,63 +180,74 @@ export class QueryState {
     const state = getState();
     return this.queryService.post('/api', payload.postRequest).pipe(
       take(1),
-      tap((result) => {
-        if (!result) return;
-        // console.log('Result in b4 intersect', result);
-        // let type = RequestType.ADDITIVE;
-        setState({
-          queries: [
-            ...state.queries,
-            {
-              query: {
-                query: payload.query,
-                requestType: payload.requestType,
-                postRequest: payload.postRequest,
-                counter: payload.counter,
-              },
-              result: result.results,
-            },
-          ],
-        });
-        // console.log(
-        //   'is the if condition satisfied: ',
-        //   state.queries[state.queries.length - 1] !== undefined ? true : false
-        // );
-        //skip AddExtendedQueryAfterInstersect if we restart the state back to "INITIAL" with a new query
-        // if (
-        //   state.queries[state.queries.length - 1] !== undefined &&
-        //   state.queries[state.queries.length - 1].query.counter > 0
-        // )
-
-        //didn't work the 2nd time you start a new query. It still entered After Intersect
-        // if (
-        //   state.queries[state.queries.length - 1].query.requestType !==
-        //   'INITIAL'
-        // )
-
-        if (payload.requestType !== 'INITIAL') {
-          console.log(
-            'request type in AfterIntersect 1',
-            state.queries[state.queries.length - 1].query.requestType
-          );
-          console.log('request type in AfterIntersect 2', payload.requestType);
-          // let diff = this.diffService.getDifference();
-          let intersect = this.intersectService.getIntersection();
-          console.log('INTERSECT in STATE', intersect);
-          if (!intersect) return;
-          dispatch(
-            new AddExtendedQueryAfterInstersect(
+      tap(
+        (result) => {
+          if (!result) return;
+          // console.log('Result in b4 intersect', result);
+          // let type = RequestType.ADDITIVE;
+          setState({
+            queries: [
+              ...state.queries,
               {
-                query: payload.query,
-                requestType: payload.requestType,
-                postRequest: payload.postRequest,
-                counter: payload.counter,
+                query: {
+                  query: payload.query,
+                  requestType: payload.requestType,
+                  postRequest: payload.postRequest,
+                  counter: payload.counter,
+                },
+                result: result.results,
               },
-              intersect
-            )
-          );
+            ],
+          });
+          // console.log(
+          //   'is the if condition satisfied: ',
+          //   state.queries[state.queries.length - 1] !== undefined ? true : false
+          // );
+          //skip AddExtendedQueryAfterInstersect if we restart the state back to "INITIAL" with a new query
+          // if (
+          //   state.queries[state.queries.length - 1] !== undefined &&
+          //   state.queries[state.queries.length - 1].query.counter > 0
+          // )
+
+          //didn't work the 2nd time you start a new query. It still entered After Intersect
+          // if (
+          //   state.queries[state.queries.length - 1].query.requestType !==
+          //   'INITIAL'
+          // )
+
+          if (payload.requestType !== 'INITIAL') {
+            console.log(
+              'request type in AfterIntersect 1',
+              state.queries[state.queries.length - 1].query.requestType
+            );
+            console.log(
+              'request type in AfterIntersect 2',
+              payload.requestType
+            );
+            // let diff = this.diffService.getDifference();
+            let intersect = this.intersectService.getIntersection();
+            console.log('INTERSECT in STATE', intersect);
+            if (!intersect) return;
+            dispatch(
+              new AddExtendedQueryAfterInstersect(
+                {
+                  query: payload.query,
+                  requestType: payload.requestType,
+                  postRequest: payload.postRequest,
+                  counter: payload.counter,
+                },
+                intersect
+              )
+            );
+          }
         }
-      })
+        // (error) => {
+        //   //Error callback
+        //   console.error('error caught in component');
+        //   SetNoResponseService
+        //   throw error;
+        // }
+      )
     );
   }
 
