@@ -163,9 +163,10 @@ export class UISearchChatbotComponent implements OnInit {
         this.reuqestMoreScreens = request.postRequest;
 
         if (this.noResults) {
-          this.setNoResultsService.setNoResultsFlag(false);
-          this.noResults = this.setNoResultsService.getNoResultsFlag();
-          console.log('no results?', this.noResults);
+          // this.setNoResultsService.setNoResultsFlag(false);
+          // this.noResults = this.setNoResultsService.getNoResultsFlag();
+          // console.log('no results?', this.noResults);
+          return;
         }
         this.stateExt = RequestType[request.requestType];
         this.counter = request.counter;
@@ -220,6 +221,8 @@ export class UISearchChatbotComponent implements OnInit {
           console.log('ENTERED FOR THE ' + this.counterEntires + ' TIME');
           this.endResults = results[results.length - 1].result;
         }
+
+        this.noResults = this.setNoResultsService.getNoResultsFlag();
         console.log('GENERAL', this.endResults);
         this.renderChatbotResultsFromMetaData(this.endResults);
         this.requestExtended = null;
@@ -414,6 +417,8 @@ export class UISearchChatbotComponent implements OnInit {
 
     let query_results = results;
 
+    this.noResults = this.setNoResultsService.getNoResultsFlag();
+
     //console.log('RESULTS', results);
 
     this.resultsMeta = [];
@@ -495,7 +500,8 @@ export class UISearchChatbotComponent implements OnInit {
       ({ index: id1 }) => !setB.result.some(({ index: id2 }) => id2 === id1)
     );
     // console.log('the diff', diff);
-    if (diff.length === 0) {
+    // if (diff.length === 0) {
+    if (!diff.length) {
       //  this.noResults = true;
       this.setNoResultsService.setNoResultsFlag(true);
       return;
@@ -526,11 +532,13 @@ export class UISearchChatbotComponent implements OnInit {
     console.log('CALCULATING INTERSECTION');
     if (!setA) return;
     if (!setB) return;
-    let intersect = setA.result.filter(({ index: id1 }) =>
-      setB.result.some(({ index: id2 }) => id2 === id1)
+    let intersect = setB.result.filter(
+      ({ index: id1 }) => setA.result.some(({ index: id2 }) => id2 === id1),
+      console.log('tralalala')
     );
     // console.log('the intersect', intersect);
-    if (intersect.length === 0) {
+    // if (intersect.length === 0) {
+    if (!intersect) {
       //  this.noResults = true;
       this.setNoResultsService.setNoResultsFlag(true);
       return;
@@ -570,8 +578,14 @@ export class UISearchChatbotComponent implements OnInit {
   getTopResults(metaResults: any[]) {
     console.log('in top results', metaResults);
     if (!metaResults) return;
+    console.log('INDEX NEXT', this.indexNext);
+    if (this.indexNext === undefined) {
+      console.log('in if statement');
+      return;
+    }
     let top = [];
-    for (let i = 0; i < 20; i++) {
+    console.log('index next');
+    for (let i = 0; i < this.indexNext + 20; i++) {
       top.push(metaResults[i]);
     }
     return top;
@@ -588,7 +602,7 @@ export class UISearchChatbotComponent implements OnInit {
     let iter_start = this.indexNext + 20;
     let iter_end = this.indexNext + 40;
 
-    if (iter_start > metaResults.length) {
+    if (iter_start >= metaResults.length) {
       this.noResults = true;
       this.counter = 0;
       return;
@@ -600,8 +614,8 @@ export class UISearchChatbotComponent implements OnInit {
 
     console.log('NEXT INDEX', this.indexNext);
     let top = [];
-    for (let i = iter_start; i < iter_end; i++) {
-      //console.log('i: ', i);
+    for (let i = 0; i < iter_end; i++) {
+      console.log('i: ', i);
       top.push(metaResults[i]);
     }
     this.indexNext = this.indexNext + 20;

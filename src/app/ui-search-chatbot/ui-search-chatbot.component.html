@@ -34,7 +34,7 @@
   </h5>
 </div>
 
-<div *ngIf="resultsMeta && !noResults" id="main">
+<div *ngIf="resultsMeta" id="main">
   <mat-grid-list cols="3" rowHeight="600px">
     <mat-grid-tile *ngFor="let item of resultsMeta; index as i" id="results">
       <mat-card class="example-card" (click)="openImageDialog(item.screenURL)">
