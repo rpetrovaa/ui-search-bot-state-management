@@ -94,10 +94,10 @@ export class UISearchChatbotComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.routeQueryParams$ = this.route.queryParams.subscribe((params) => {
-      params = params['dialog'];
-      this.openDialog();
-    });
+    // this.routeQueryParams$ = this.route.queryParams.subscribe((params) => {
+    //   params = params['dialog'];
+    //   this.openDialog();
+    // });
     if (this.mode_searchUI === true) {
       this.searchForm = new FormGroup({
         value: new FormControl('login'),

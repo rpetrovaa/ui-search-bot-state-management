@@ -4,7 +4,7 @@ import { UISearchChatbotComponent } from './ui-search-chatbot/ui-search-chatbot.
 
 const routes: Routes = [
   { path: '', component: UISearchChatbotComponent },
-  { path: 'instructions', component: InstructionsComponent },
+  // { path: 'instructions', component: InstructionsComponent },
 
   // otherwise redirect to home
   { path: '**', redirectTo: '' },
