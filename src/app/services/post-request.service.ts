@@ -15,8 +15,6 @@ export class PostRequestService {
       max_results: 1000,
     };
 
-    //console.log('inside post', postRequest);
-
     return postRequest;
   }
 }

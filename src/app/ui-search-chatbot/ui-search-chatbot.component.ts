@@ -112,7 +112,6 @@ export class UISearchChatbotComponent implements OnInit {
             if (this.noResults) {
               this.setNoResultsService.setNoResultsFlag(false);
               this.noResults = this.setNoResultsService.getNoResultsFlag();
-              console.log('no results?', this.noResults);
             }
             this.computeNegativeResults(this.requestNegative, this.counter);
           }
@@ -123,28 +122,20 @@ export class UISearchChatbotComponent implements OnInit {
 
     if (this.setActionService.requestExtended) {
       this.indexNext = 0;
-      console.log('JUMPED IN REQUEST EXTENDED AS WELL');
       this.setActionService.requestExtended.subscribe((request) => {
-        console.log('IN SUBSCRIBE');
-        console.log('REQ', request);
         if (!request) return;
         this.requestExtended = request.postRequest;
 
         if (this.noResults) {
           this.setNoResultsService.setNoResultsFlag(false);
           this.noResults = this.setNoResultsService.getNoResultsFlag();
-          console.log('no results?', this.noResults);
         }
         this.stateExt = RequestType[request.requestType];
         this.counter = request.counter;
-        // console.log('Before resetting index, statet is: ' + this.stateExt);
         if (this.stateExt === 'INITIAL') {
           this.indexNext = 0;
         }
         if (this.requestExtended) {
-          // console.log('requestExtended is not undefined');
-          console.log('In request extended');
-
           this.computeExtendedResults(
             this.requestExtended,
             this.counter,
@@ -156,16 +147,11 @@ export class UISearchChatbotComponent implements OnInit {
     }
 
     if (this.setActionService.requestMoreScreens) {
-      console.log('IS THERE SOMETHING IN REQ MORE SCREENS');
-      console.log('more', this.setActionService.requestMoreScreens);
       this.setActionService.requestMoreScreens.subscribe((request) => {
         if (!request) return;
         this.reuqestMoreScreens = request.postRequest;
 
         if (this.noResults) {
-          // this.setNoResultsService.setNoResultsFlag(false);
-          // this.noResults = this.setNoResultsService.getNoResultsFlag();
-          // console.log('no results?', this.noResults);
           return;
         }
         this.stateExt = RequestType[request.requestType];
@@ -192,19 +178,11 @@ export class UISearchChatbotComponent implements OnInit {
       if (!results) return;
 
       this.generalResults = results;
-      console.log('RESULTs', results);
-
       if (this.requestExtended) {
-        console.log('COUNTER', this.counter);
         if (this.counter > 0) {
-          console.log('IN 1nd part');
           this.counterEntires += 1;
-          console.log('ENTERED FOR THE ' + this.counterEntires + ' TIME');
-
-          //if there were no results from the prev. query, reset state to INITIAL. Otherwise itersect will not be computed for the two following requests and the code will break
           //if there were no results from the prev. query, reset state to INITAL. Otherwise itersect will not be computed for the two following requests and the code will break
           if (!results[results.length - 1].length) {
-            console.log(true);
             this.counter = 0;
           }
 
@@ -212,18 +190,13 @@ export class UISearchChatbotComponent implements OnInit {
             results[results.length - 2],
             results[results.length - 1]
           );
-          console.log('Calculataed intersection', intersect);
-          console.log('previ', results[results.length - 2].query);
-          console.log('curri', results[results.length - 1].query);
           this.endResults = intersect;
         } else {
           this.counterEntires += 1;
-          console.log('ENTERED FOR THE ' + this.counterEntires + ' TIME');
           this.endResults = results[results.length - 1].result;
         }
 
         this.noResults = this.setNoResultsService.getNoResultsFlag();
-        console.log('GENERAL', this.endResults);
         this.renderChatbotResultsFromMetaData(this.endResults);
         this.requestExtended = null;
       }
@@ -235,15 +208,11 @@ export class UISearchChatbotComponent implements OnInit {
         );
 
         this.noResults = this.setNoResultsService.getNoResultsFlag();
-        console.log('no results?', this.noResults);
-
         //if there were no results from the prev. query, reset state to INITAL. Otherwise itersect will not be computed for the two following requests and the code will break
         if (!results[results.length - 1].length) {
-          console.log(true);
           this.counter = 0;
         }
 
-        console.log('SetDiff', setDiff);
         this.endResults = setDiff;
         this.renderChatbotResultsFromMetaData(this.endResults);
 
@@ -256,20 +225,10 @@ export class UISearchChatbotComponent implements OnInit {
           this.counter = 0;
         }
         this.nextResults = [];
-
-        console.log(
-          'what is the original value',
-          results[results.length - 1].result
-        );
-
         this.nextResults = this.getNextTopResults(
           results[results.length - 1].result
         );
 
-        // if (this.nextResults.length === 0) {
-        //   this.noResults = true;
-        //   this.counter = 0;
-        // }
         if (!this.nextResults) return;
         this.renderChatbotResultsFromMetaData(this.nextResults);
         this.counter = this.counter + 1;
@@ -365,7 +324,6 @@ export class UISearchChatbotComponent implements OnInit {
           counter: counter,
         },
         this.lastResults[1].result
-        //result[result.length - 1]
       )
     );
 
@@ -385,7 +343,6 @@ export class UISearchChatbotComponent implements OnInit {
       if (!results) return;
       this.resultsMeta = [];
       this.resultsImages = [];
-      //console.log('Results in app:', results);
 
       const primary = [];
 
@@ -393,7 +350,6 @@ export class UISearchChatbotComponent implements OnInit {
         if (!result) return;
         if (!result.result) return;
         const top = this.getTopResults(result.result);
-        //console.log('TOP', top);
         top.forEach((element) => {
           if (!element) return;
           const index = element.index;
@@ -411,26 +367,15 @@ export class UISearchChatbotComponent implements OnInit {
   }
 
   renderChatbotResultsFromMetaData(results: any) {
-    console.log('is it null?', results);
-    console.log('Trying to render in results meta');
     if (!results) return;
-
-    let query_results = results;
-
     this.noResults = this.setNoResultsService.getNoResultsFlag();
-
-    //console.log('RESULTS', results);
-
     this.resultsMeta = [];
     this.resultsImages = [];
     const primary = [];
 
     const top = this.getTopResults(results);
-    console.log('TOP', top);
-
     if (!top) return;
     top.forEach((result) => {
-      // console.log('iterating in TOP', result);
       if (!result) return;
       const index = result.index;
       const url = '/ui/' + index + '.jpg';
@@ -439,12 +384,10 @@ export class UISearchChatbotComponent implements OnInit {
     });
     if (!this.resultsMeta && !primary && !this.resultsImages) return;
     this.resultsMeta = this.combineArrays(primary, this.resultsImages);
-    console.log('this.resultsMeta', this.resultsMeta);
   }
 
   getUIs(data) {
     if (!data) {
-      // console.log('No metadata retrieved from server.');
       return;
     }
 
@@ -493,25 +436,20 @@ export class UISearchChatbotComponent implements OnInit {
   }
 
   calculateSetDifference(setA, setB) {
-    console.log('CALCULATING DIFF');
     if (!setA) return;
     if (!setB) return;
+
     let diff = setA.result.filter(
       ({ index: id1 }) => !setB.result.some(({ index: id2 }) => id2 === id1)
     );
-    // console.log('the diff', diff);
-    // if (diff.length === 0) {
+
     if (!diff.length) {
-      //  this.noResults = true;
       this.setNoResultsService.setNoResultsFlag(true);
       return;
     }
 
     // this.noResults = false;
     if (diff.length < 20 && diff.length >= 1) {
-      console.log(
-        'Diffren was smaller than 20 and bigger than 1. Calculating new intersect'
-      );
       diff = new Set([...setA.result, ...diff]);
       diff = [...diff].sort((a, b) => {
         if (b.score < a.score) {
@@ -529,25 +467,17 @@ export class UISearchChatbotComponent implements OnInit {
   }
 
   calculateSetIntersection(setA, setB) {
-    console.log('CALCULATING INTERSECTION');
     if (!setA) return;
     if (!setB) return;
-    let intersect = setB.result.filter(
-      ({ index: id1 }) => setA.result.some(({ index: id2 }) => id2 === id1),
-      console.log('tralalala')
+    let intersect = setB.result.filter(({ index: id1 }) =>
+      setA.result.some(({ index: id2 }) => id2 === id1)
     );
-    // console.log('the intersect', intersect);
-    // if (intersect.length === 0) {
     if (!intersect) {
-      //  this.noResults = true;
       this.setNoResultsService.setNoResultsFlag(true);
       return;
     }
 
     if (intersect.length < 20 && intersect.length >= 1) {
-      console.log(
-        'Intersect was smaller than 20 and bigger than 1. Calculating new intersect'
-      );
       intersect = new Set([...setA.result, ...intersect]);
       intersect = [...intersect].sort((a, b) => {
         if (b.score < a.score) {
@@ -559,8 +489,6 @@ export class UISearchChatbotComponent implements OnInit {
         return 0;
       });
     }
-
-    //this.diffService.setDifference(intersect);
     this.intersectService.setIntersection(intersect);
     return intersect;
   }
@@ -576,15 +504,11 @@ export class UISearchChatbotComponent implements OnInit {
 
   //get top 20 results
   getTopResults(metaResults: any[]) {
-    console.log('in top results', metaResults);
     if (!metaResults) return;
-    console.log('INDEX NEXT', this.indexNext);
     if (this.indexNext === undefined) {
-      console.log('in if statement');
       return;
     }
     let top = [];
-    console.log('index next');
     for (let i = 0; i < this.indexNext + 20; i++) {
       top.push(metaResults[i]);
     }
@@ -592,7 +516,6 @@ export class UISearchChatbotComponent implements OnInit {
   }
 
   getNextTopResults(metaResults: any[]) {
-    console.log('in next results', metaResults);
     if (!metaResults) {
       this.noResults = true;
       this.counter = 0;
@@ -612,10 +535,8 @@ export class UISearchChatbotComponent implements OnInit {
       iter_end = metaResults.length - 1;
     }
 
-    console.log('NEXT INDEX', this.indexNext);
     let top = [];
     for (let i = 0; i < iter_end; i++) {
-      console.log('i: ', i);
       top.push(metaResults[i]);
     }
     this.indexNext = this.indexNext + 20;
@@ -625,8 +546,6 @@ export class UISearchChatbotComponent implements OnInit {
   openDialog() {
     const dialogRef = this.dialog.open(InstructionsDialogComponent);
 
-    dialogRef.afterClosed().subscribe((result) => {
-      console.log(`Dialog result: ${result}`);
-    });
+    dialogRef.afterClosed().subscribe((result) => {});
   }
 }

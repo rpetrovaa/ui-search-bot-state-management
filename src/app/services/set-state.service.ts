@@ -48,24 +48,4 @@ export class SetStateService {
   ) {
     this.postRequestMoreScreens$.next({ postRequest, requestType, counter });
   }
-  // getAction() {
-  //   let value = this.postRequest$.getValue();
-  //   console.log(value);
-  //   if (!value) {
-  //     console.log('it is in undefied if condition');
-  //     return;
-  //   }
-
-  //   console.log('in get action, the global post request is', this.postRequest$);
-
-  //   let action = new AddQuery({
-  //     query: value.query,
-  //     requestType: RequestType.INITIAL,
-  //     postRequest: value,
-  //   });
-
-  //   console.log('getting action', action);
-
-  //   return action;
-  // }
 }

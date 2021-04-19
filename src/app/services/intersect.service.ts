@@ -13,7 +13,6 @@ export class IntersectService {
 
   setIntersection(intersect: PostResult[]) {
     this.intersect$.next(intersect);
-    //this.difference = diff;
   }
 
   getIntersection() {

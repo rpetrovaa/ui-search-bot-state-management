@@ -59,15 +59,12 @@ export class ChatbotComponent implements OnInit {
 
     if (!this.diffService.diff) return;
     this.diffService.diff.subscribe((diff) => {
-      // if (!diff) return;
       this.diff = diff;
-      console.log('subscribed diff in chatbot');
     });
 
     if (!this.intersectService.intersect) return;
     this.intersectService.intersect.subscribe((intersect) => {
       this.intersect = intersect;
-      console.log('subscribed intersect in chatbot');
     });
 
     this.lastQuery$.subscribe((results) => (this.lastResults = results));
@@ -78,10 +75,6 @@ export class ChatbotComponent implements OnInit {
     //$(document).ready(function() {
     let postRequestService = this.postRequestService;
     let setStateServiceLocal = this.setStateService;
-    //let diff = this.diff;
-    let diffServiceLocal = this.diffService;
-    let intersectServiceLocal = this.intersectService;
-    // console.log('set state service in global scope', setStateServiceLocal);
 
     //Bot pop-up intro
     $('div').removeClass('tap-target-origin');
@@ -98,15 +91,12 @@ export class ChatbotComponent implements OnInit {
 
     //global variables
     let action_name = 'action_greet_user';
-    let user_id = 'radost';
-    let requestGlobal = this.request;
+    let user_id = 'participant';
     let messageGlobal = this.message;
     let requestGlobalNegatve = this.requestNegative;
     let requestGlobalExtended = this.requestExtended;
     let stateGlobal = this.state;
-    let stateExtGLobal = this.stateExt;
     let counterGlobal = this.counter;
-    let askedGlobal = false;
 
     //if you want the bot to start the conversation
     // action_trigger();
@@ -259,18 +249,6 @@ export class ChatbotComponent implements OnInit {
           }
 
           messageGlobal = message;
-
-          // =====================================
-          // if (
-          //   botResponse !== undefined &&
-          //   botResponse[0].text == 'What other screens would you like to have?'
-          // ) {
-          //   if (message.includes('yes')) {
-          //     counterGlobal = 0;
-          //     // console.log('RESETTING COUNTER');
-          //   }
-          // }
-          // ===============================
           setBotResponse(botResponse);
         },
         error: function (xhr, textStatus, errorThrown) {
@@ -296,7 +274,6 @@ export class ChatbotComponent implements OnInit {
       //display bot response after 500 milliseconds
       setTimeout(function () {
         hideBotTyping();
-        console.log('bot response BEFORE:', response);
         if (response.length < 1) {
           //if there is no response from Rasa, send  fallback message to the user
           var fallbackMsg =
@@ -392,15 +369,7 @@ export class ChatbotComponent implements OnInit {
 
                 var BotResponse = '';
 
-                if (!slot_value) {
-                  console.log('IN IF 1');
-                  BotResponse =
-                    '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
-                    'Here are your results.' +
-                    '</p><div class="clearfix"></div>';
-                  $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
-                } else {
-                  // counterGlobal += 1;
+                if (slot_value && counterGlobal === 0) {
                   BotResponse =
                     '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
                     'Here are your ' +
@@ -408,20 +377,15 @@ export class ChatbotComponent implements OnInit {
                     ' results.' +
                     '</p><div class="clearfix"></div>';
                   $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
-
-                  // counterGlobal += 1;
-                  // BotResponse =
-                  //   '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
-                  //   'Here are your results with ' +
-                  //   slot_value +
-                  //   '.' +
-                  //   '</p><div class="clearfix"></div>';
-                  // $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
+                } else {
+                  BotResponse =
+                    '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
+                    'Here are your results.' +
+                    '</p><div class="clearfix"></div>';
+                  $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
                 }
 
-                stateExtGLobal = RequestType.ADDITIVE;
-
-                let addQueryExtended = setStateServiceLocal.setActionExtended(
+                setStateServiceLocal.setActionExtended(
                   requestGlobalExtended,
                   stateGlobal,
                   counterGlobal
@@ -433,14 +397,12 @@ export class ChatbotComponent implements OnInit {
               if (response[i].custom.payload == 'query_negative') {
                 if (counterGlobal === 0) return;
                 if (!messageGlobal) {
-                  // console.log('messageGlobal still undefined and returning');
                   return;
                 }
 
                 let slot_value = response[i].custom.data.text.query;
 
                 if (!slot_value) {
-                  // console.log('slot value is undefined');
                   requestGlobalNegatve = postRequestService.createPostRequest(
                     messageGlobal
                   );
@@ -451,7 +413,6 @@ export class ChatbotComponent implements OnInit {
                 }
 
                 if (!requestGlobalNegatve) {
-                  // console.log('still undefined and returning');
                   return;
                 }
 
@@ -477,7 +438,7 @@ export class ChatbotComponent implements OnInit {
 
                 stateGlobal = RequestType.NEGATIVE;
 
-                let addQueryNegative = setStateServiceLocal.setActionNegative(
+                setStateServiceLocal.setActionNegative(
                   requestGlobalNegatve,
                   stateGlobal,
                   counterGlobal
@@ -502,7 +463,6 @@ export class ChatbotComponent implements OnInit {
               //reset state back to "INITIAL" on requesting more screens
               if (response[i].custom.payload == 'reset_state') {
                 counterGlobal = 0;
-                console.log('RESETTING COUNTER');
               }
             }
           }

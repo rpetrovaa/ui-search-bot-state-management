@@ -12,7 +12,6 @@ export class SetNoResponseService {
 
   setNoResultsFlag(noResults: boolean) {
     this.noResults$.next(noResults);
-    //this.difference = diff()
   }
 
   getNoResultsFlag() {
