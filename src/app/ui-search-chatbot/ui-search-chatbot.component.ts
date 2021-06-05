@@ -532,7 +532,7 @@ export class UISearchChatbotComponent implements OnInit {
     }
 
     if (metaResults.length > 20 && metaResults.length < iter_end) {
-      iter_end = metaResults.length - 1;
+      iter_end = metaResults.length;
     }
 
     let top = [];

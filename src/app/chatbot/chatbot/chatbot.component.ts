@@ -347,13 +347,11 @@ export class ChatbotComponent implements OnInit {
 
                 if (!slot_value) {
                   // console.log('slot value is undefined');
-                  requestGlobalExtended = postRequestService.createPostRequest(
-                    messageGlobal
-                  );
+                  requestGlobalExtended =
+                    postRequestService.createPostRequest(messageGlobal);
                 } else {
-                  requestGlobalExtended = postRequestService.createPostRequest(
-                    slot_value
-                  );
+                  requestGlobalExtended =
+                    postRequestService.createPostRequest(slot_value);
                 }
 
                 if (!requestGlobalExtended) {
@@ -403,13 +401,11 @@ export class ChatbotComponent implements OnInit {
                 let slot_value = response[i].custom.data.text.query;
 
                 if (!slot_value) {
-                  requestGlobalNegatve = postRequestService.createPostRequest(
-                    messageGlobal
-                  );
+                  requestGlobalNegatve =
+                    postRequestService.createPostRequest(messageGlobal);
                 } else {
-                  requestGlobalNegatve = postRequestService.createPostRequest(
-                    slot_value
-                  );
+                  requestGlobalNegatve =
+                    postRequestService.createPostRequest(slot_value);
                 }
 
                 if (!requestGlobalNegatve) {

@@ -13,7 +13,6 @@ export class DiffService {
 
   setDifference(diff: PostResult[]) {
     this.diff$.next(diff);
-    //this.difference = diff;
   }
 
   getDifference() {
