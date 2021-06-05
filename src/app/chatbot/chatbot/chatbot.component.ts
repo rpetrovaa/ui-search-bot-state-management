@@ -108,8 +108,6 @@ export class ChatbotComponent implements OnInit {
       $('#userInput').prop('disabled', true);
       //destroy the existing chart
       $('.collapsible').remove();
-
-      $('.chart-container').remove();
       //if (typeof modalChart !== 'undefined') { modalChart.destroy(); }
       $('.chats').html('');
       $('.usrInput').val('');
@@ -162,13 +160,7 @@ export class ChatbotComponent implements OnInit {
         } else {
           //destroy the existing chart, if yu are not using charts, then comment the below lines
           $('.collapsible').remove();
-
-          $('.chart-container').remove();
           //if (typeof modalChart !== 'undefined') { modalChart.destroy(); }
-
-          $('#paginated_cards').remove();
-          $('.suggestions').remove();
-          $('.quickReplies').remove();
           $('.usrInput').blur();
           setUserResponse(text);
           send(text);
@@ -269,8 +261,6 @@ export class ChatbotComponent implements OnInit {
 
     //=================== set bot response in the chats ===========================================
     function setBotResponse(response) {
-      // console.log('checking this.request', requestGlobal);
-
       //display bot response after 500 milliseconds
       setTimeout(function () {
         hideBotTyping();
@@ -311,20 +301,8 @@ export class ChatbotComponent implements OnInit {
               $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
             }
 
-            //check if the response contains "buttons"
-            if (response[i].hasOwnProperty('buttons')) {
-              addSuggestion(response[i].buttons);
-            }
-
             //check if the response contains "custom" message
             if (response[i].hasOwnProperty('custom')) {
-              //check if the custom payload type is "quickReplies"
-              if (response[i].custom.payload == 'quickReplies') {
-                const quickRepliesData = response[i].custom.data;
-                showQuickReplies(quickRepliesData);
-                return;
-              }
-
               //check if the custom payload type is "dropDown"
               if (response[i].custom.payload == 'dropDown') {
                 const dropDownData = response[i].custom.data;
@@ -334,19 +312,13 @@ export class ChatbotComponent implements OnInit {
 
               //check of the custom payload type is "query_extended"
               if (response[i].custom.payload == 'query_extended') {
-                // console.log(
-                //   'inside response is there slot?:',
-                //   response[i].custom
-                // );
                 if (!messageGlobal) {
-                  // console.log('messageGlobal still undefined and returning');
                   return;
                 }
 
                 let slot_value = response[i].custom.data.text.query;
 
                 if (!slot_value) {
-                  // console.log('slot value is undefined');
                   requestGlobalExtended =
                     postRequestService.createPostRequest(messageGlobal);
                 } else {
@@ -355,14 +327,13 @@ export class ChatbotComponent implements OnInit {
                 }
 
                 if (!requestGlobalExtended) {
-                  // console.log('still undefined and returning');
                   return;
                 }
 
                 if (counterGlobal === 0) {
-                  stateGlobal = RequestType.INITIAL;
+                  stateGlobal = RequestType.INITIAL; // when the user want to make the first request in a search session
                 } else {
-                  stateGlobal = RequestType.ADDITIVE;
+                  stateGlobal = RequestType.ADDITIVE; // when the user has already made the first request in a search session and wants to make another request of type additive
                 }
 
                 var BotResponse = '';
@@ -391,7 +362,7 @@ export class ChatbotComponent implements OnInit {
                 counterGlobal += 1;
               }
 
-              //check of the custom payload type is "query_negative"
+              //check of the custom payload type is "query_negative"; when the user wants to make a negative request
               if (response[i].custom.payload == 'query_negative') {
                 if (counterGlobal === 0) return;
                 if (!messageGlobal) {
@@ -415,14 +386,12 @@ export class ChatbotComponent implements OnInit {
                 var BotResponse = '';
 
                 if (!slot_value) {
-                  console.log('IN IF 1');
                   BotResponse =
                     '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
                     'Here are your results.' +
                     '</p><div class="clearfix"></div>';
                   $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
                 } else {
-                  console.log('IN ELSE 2');
                   BotResponse =
                     '<img class="botAvatar" src="./assets/img/sara_avatar.png"/><p class="botMsg">' +
                     'Here are your results without ' +
@@ -443,7 +412,7 @@ export class ChatbotComponent implements OnInit {
                 counterGlobal += 1;
               }
 
-              //check of the custom payload type is "query_negative"
+              //check of the custom payload type is "more_screens"; when the user wants to see the next top 20 screens
               if (response[i].custom.payload == 'more_screens') {
                 stateGlobal = RequestType.ADDITIVE;
 
@@ -456,7 +425,7 @@ export class ChatbotComponent implements OnInit {
                 counterGlobal += 1;
               }
 
-              //reset state back to "INITIAL" on requesting more screens
+              //reset state back to "INITIAL" on requesting more screens; resets the search sessions state
               if (response[i].custom.payload == 'reset_state') {
                 counterGlobal = 0;
               }
@@ -507,44 +476,6 @@ export class ChatbotComponent implements OnInit {
       });
     }
 
-    //====================================== Suggestions ===========================================
-
-    function addSuggestion(textToAdd) {
-      setTimeout(function () {
-        var suggestions = textToAdd;
-        var suggLength = textToAdd.length;
-        $(
-          ' <div class="singleCard"> <div class="suggestions"><div class="menu"></div></div></diV>'
-        )
-          .appendTo('.chats')
-          .hide()
-          .fadeIn(1000);
-        // Loop through suggestions
-        for (let i = 0; i < suggLength; i++) {
-          $(
-            '<div class="menuChips" data-payload=\'' +
-              suggestions[i].payload +
-              "'>" +
-              suggestions[i].title +
-              '</div>'
-          ).appendTo('.menu');
-        }
-        scrollToBottomOfResults();
-      }, 1000);
-    }
-
-    // on click of suggestions, get the value and send to rasa
-    $(document).on('click', '.menu .menuChips', function () {
-      var text = this.innerText;
-      var payload = this.getAttribute('data-payload');
-      console.log('payload: ', this.getAttribute('data-payload'));
-      setUserResponse(text);
-      send(payload);
-
-      //delete the suggestions once user click on it
-      $('.suggestions').remove();
-    });
-
     //====================================== functions for drop-down menu of the bot  =========================================
 
     //restart function to restart the conversation.
@@ -565,104 +496,6 @@ export class ChatbotComponent implements OnInit {
       $('.profile_div').toggle();
       $('.widget').toggle();
       scrollToBottomOfResults();
-    });
-
-    function createCardsCarousel(cardsData) {
-      var cards = '';
-
-      for (let i = 0; i < cardsData.length; i++) {
-        const title = cardsData[i].name;
-        const ratings = Math.round((cardsData[i].ratings / 5) * 100) + '%';
-        const data = cardsData[i];
-        const item =
-          '<div class="carousel_cards in-left">' +
-          '<img class="cardBackgroundImage" src="' +
-          cardsData[i].image +
-          '"><div class="cardFooter">' +
-          '<span class="cardTitle" title="' +
-          title +
-          '">' +
-          title +
-          '</span> ' +
-          '<div class="cardDescription">' +
-          '<div class="stars-outer">' +
-          '<div class="stars-inner" style="width:' +
-          ratings +
-          '" ></div>' +
-          '</div>' +
-          '</div>' +
-          '</div>' +
-          '</div>';
-
-        cards += item;
-      }
-
-      var cardContents =
-        '<div id="paginated_cards" class="cards"> <div class="cards_scroller">' +
-        cards +
-        '  <span class="arrow prev fa fa-chevron-circle-left "></span> <span class="arrow next fa fa-chevron-circle-right" ></span> </div> </div>';
-
-      return cardContents;
-    }
-
-    //====================================== Quick Replies ==================================================
-
-    function showQuickReplies(quickRepliesData) {
-      var chips = '';
-      for (let i = 0; i < quickRepliesData.length; i++) {
-        var chip =
-          '<div class="chip" data-payload=\'' +
-          quickRepliesData[i].payload +
-          "'>" +
-          quickRepliesData[i].title +
-          '</div>';
-        chips += chip;
-      }
-
-      var quickReplies =
-        '<div class="quickReplies">' +
-        chips +
-        '</div><div class="clearfix"></div>';
-      $(quickReplies).appendTo('.chats').fadeIn(1000);
-      scrollToBottomOfResults();
-      const slider = document.querySelector('.quickReplies') as HTMLElement;
-      let isDown = false;
-      let startX;
-      let scrollLeft;
-
-      slider.addEventListener('mousedown', (e: MouseEvent) => {
-        isDown = true;
-        slider.classList.add('active');
-        startX = e.pageX - slider.offsetLeft;
-        scrollLeft = slider.scrollLeft;
-      });
-      slider.addEventListener('mouseleave', () => {
-        isDown = false;
-        slider.classList.remove('active');
-      });
-      slider.addEventListener('mouseup', () => {
-        isDown = false;
-        slider.classList.remove('active');
-      });
-      slider.addEventListener('mousemove', (e) => {
-        if (!isDown) return;
-        e.preventDefault();
-        const x = e.pageX - slider.offsetLeft;
-        const walk = (x - startX) * 3; //scroll-fast
-        slider.scrollLeft = scrollLeft - walk;
-      });
-    }
-
-    // on click of quickreplies, get the value and send to rasa
-    $(document).on('click', '.quickReplies .chip', function () {
-      var text = this.innerText;
-      var payload = this.getAttribute('data-payload');
-      console.log('chip payload: ', this.getAttribute('data-payload'));
-      setUserResponse(text);
-      send(payload);
-
-      //delete the quickreplies
-      $('.quickReplies').remove();
     });
 
     //======================================bot typing animation ======================================
