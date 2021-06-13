@@ -1,7 +1,7 @@
 {
     "/api": {
         "http_method": ["POST"],
-        "target": "http://alkmaar.informatik.uni-mannheim.de/gui2r/gui2r/v1/retrieval",
+        "target": "http://rawi-prototyping.com/gui2r/v1/retrieval",
         "secure": false,
         "changeOrigin": true,
         "logLevel": "debug",
@@ -12,7 +12,7 @@
     },
     "/ui": {
         "http_method": ["GET"],
-        "target": "http://alkmaar.informatik.uni-mannheim.de/static/resources/combined",
+        "target": "http://rawi-prototyping.com/static/resources/combined",
         "secure": false,
         "changeOrigin": true,
         "logLevel": "debug",
