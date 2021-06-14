@@ -17,6 +17,8 @@ To run the project locally, execute the command `ng serve` in the project locati
 
 When you load the app, click on the bird icon in the lower right corner to open the chat widget. Then, you can start writing requests for GUIs :) And maybe ask the bot to tell you a joke or two ;)
 
+When you request more screens, they will be displayed at the end of the page, so you would have to scroll to view them.
+
 ## View the state changes
 
 To view the state changes in real-time while the user is making search requests with the tool, open the browser console (right click, "Inspect" and go to "Console"). You will see the current and next system state being logged by NGXS. The two states will be updated after each request (you need to scroll down the console to see the most recent changes).
