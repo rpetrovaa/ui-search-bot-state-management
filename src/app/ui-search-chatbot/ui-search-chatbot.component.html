@@ -1,31 +1,5 @@
 <h1 style="margin-left: 50px">Search GUIs</h1>
 
-<div *ngIf="mode_searchUI">
-  <div *ngIf="searchForm">
-    <form [formGroup]="searchForm" novalidate>
-      <mat-form-field
-        appearance="outline"
-        style="margin-left: 50px; width: 300px"
-      >
-        <mat-label>Search Request</mat-label>
-        <input
-          matInput
-          placeholder="Enter User Requirement or User Story"
-          formControlName="value"
-        />
-      </mat-form-field>
-      <button
-        mat-raised-button
-        color="grey"
-        style="margin-left: 10px; height: 1cm"
-        (click)="sendRequest()"
-      >
-        Search
-      </button>
-    </form>
-  </div>
-</div>
-
 <div *ngIf="noResults" style="margin-left: 50px; margin-top: 60px; color: red">
   <h5>
     <mat-icon> warning </mat-icon>
@@ -54,4 +28,4 @@
   </mat-grid-list>
 </div>
 
-<app-chatbot *ngIf="mode_chatbot"></app-chatbot>
+<app-chatbot></app-chatbot>

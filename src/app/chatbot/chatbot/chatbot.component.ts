@@ -39,22 +39,29 @@ export class ChatbotComponent implements OnInit {
     private diffService: DiffService,
     private intersectService: IntersectService
   ) {
+    // Inject all the servises from the angular components in the JQuery chatbot widget to pass information on serch requests to the state managing component
     if (!this.setStateService.requestNegative) return;
     this.setStateService.requestNegative.subscribe((requestNegative) => {
-      this.requestNegative = requestNegative.postRequest;
-      this.state = requestNegative.requestType;
+      if (this.requestNegative) {
+        this.requestNegative = requestNegative.postRequest;
+        this.state = requestNegative.requestType;
+      }
     });
 
     if (!this.setStateService.requestExtended) return;
     this.setStateService.requestExtended.subscribe((requestExtended) => {
-      this.requestExtended = requestExtended.postRequest;
-      this.stateExt = requestExtended.requestType;
+      if (requestExtended) {
+        this.requestExtended = requestExtended.postRequest;
+        this.stateExt = requestExtended.requestType;
+      }
     });
 
     if (!this.setStateService.requestMoreScreens) return;
     this.setStateService.requestMoreScreens.subscribe((requestMoreScreens) => {
-      this.requestMoreScreens = requestMoreScreens.postRequest;
-      this.state = requestMoreScreens.requestType;
+      if (requestMoreScreens) {
+        this.requestMoreScreens = requestMoreScreens.postRequest;
+        this.state = requestMoreScreens.requestType;
+      }
     });
 
     if (!this.diffService.diff) return;
@@ -70,6 +77,7 @@ export class ChatbotComponent implements OnInit {
     this.lastQuery$.subscribe((results) => (this.lastResults = results));
   }
 
+  // Initialize local variables and methods in the jQuery code for the chatbot widget to map to the above defined Angular variables
   ngOnInit() {
     //initialization
     //$(document).ready(function() {
@@ -214,7 +222,7 @@ export class ChatbotComponent implements OnInit {
       console.log('this message', message);
 
       $.ajax({
-        url: 'http://localhost:5005/webhooks/rest/webhook',
+        url: 'http://localhost:5005/webhooks/rest/webhook', // REST proxy to Rasa server
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify({ message: message, sender: user_id }),
@@ -232,6 +240,9 @@ export class ChatbotComponent implements OnInit {
           // if user wants to restart the chat and clear the existing chat contents
           if (message.toLowerCase() == '/restart') {
             $('#userInput').prop('disabled', false);
+
+            // reset the state of the search session
+            counterGlobal = 0;
 
             setBotResponse('Restarting the conversation.');
 
@@ -310,14 +321,16 @@ export class ChatbotComponent implements OnInit {
                 return;
               }
 
-              //check of the custom payload type is "query_extended"
+              //check of the custom payload type is "query_extended" for Additive type requests
               if (response[i].custom.payload == 'query_extended') {
                 if (!messageGlobal) {
                   return;
                 }
 
+                // retrieve the search related terms in the request forwarded by the Rasa Server
                 let slot_value = response[i].custom.data.text.query;
 
+                // If no slot or entity has been extracted, forward the whole search utterance to the retieval component.
                 if (!slot_value) {
                   requestGlobalExtended =
                     postRequestService.createPostRequest(messageGlobal);
@@ -330,6 +343,7 @@ export class ChatbotComponent implements OnInit {
                   return;
                 }
 
+                // counter variable to track the state of a seach session
                 if (counterGlobal === 0) {
                   stateGlobal = RequestType.INITIAL; // when the user want to make the first request in a search session
                 } else {
@@ -354,6 +368,7 @@ export class ChatbotComponent implements OnInit {
                   $(BotResponse).appendTo('.chats').hide().fadeIn(1000);
                 }
 
+                // Notify the rest of the system about the change in the state (new additive request)
                 setStateServiceLocal.setActionExtended(
                   requestGlobalExtended,
                   stateGlobal,
@@ -369,8 +384,10 @@ export class ChatbotComponent implements OnInit {
                   return;
                 }
 
+                // retrieve the search related terms in the request forwarded by the Rasa Server
                 let slot_value = response[i].custom.data.text.query;
 
+                // If no slot or entity has been extracted, forward the whole search utterance to the retieval component.
                 if (!slot_value) {
                   requestGlobalNegatve =
                     postRequestService.createPostRequest(messageGlobal);
@@ -403,6 +420,7 @@ export class ChatbotComponent implements OnInit {
 
                 stateGlobal = RequestType.NEGATIVE;
 
+                // Notify the rest of the system about the change in the state (new negative request)
                 setStateServiceLocal.setActionNegative(
                   requestGlobalNegatve,
                   stateGlobal,
@@ -412,10 +430,11 @@ export class ChatbotComponent implements OnInit {
                 counterGlobal += 1;
               }
 
-              //check of the custom payload type is "more_screens"; when the user wants to see the next top 20 screens
+              // check of the custom payload type is "more_screens"; when the user wants to see the next top 20 screens
               if (response[i].custom.payload == 'more_screens') {
                 stateGlobal = RequestType.ADDITIVE;
 
+                // Notify the rest of the system about the change in the state (new request for more screens)
                 setStateServiceLocal.setActionMoreScreens(
                   postRequestService.createPostRequest('more screens'),
                   stateGlobal,
@@ -425,7 +444,7 @@ export class ChatbotComponent implements OnInit {
                 counterGlobal += 1;
               }
 
-              //reset state back to "INITIAL" on requesting more screens; resets the search sessions state
+              // reset state back to "INITIAL" on requesting more screens; resets the search sessions state
               if (response[i].custom.payload == 'reset_state') {
                 counterGlobal = 0;
               }

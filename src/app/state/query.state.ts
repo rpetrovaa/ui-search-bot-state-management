@@ -51,40 +51,14 @@ export class QueryState {
     return [prev, current];
   }
 
-  @Action(AddQuery)
-  add(
-    { getState, setState }: StateContext<QueryStateModel>,
-    { payload }: AddQuery
-  ) {
-    const state = getState();
-    return this.queryService.post('/api', payload.postRequest).pipe(
-      take(1),
-      tap((result) => {
-        if (!result) return;
-        setState({
-          queries: [
-            ...state.queries,
-            {
-              query: {
-                query: payload.query,
-                requestType: payload.requestType,
-                postRequest: payload.postRequest,
-                counter: payload.counter,
-              },
-              result: result.results,
-            },
-          ],
-        });
-      })
-    );
-  }
-
+  // When a negative requests comes in the system
   @Action(AddNegativeQueryBeforeDiff)
   AddNegativeQueryBeforeDiff(
     { getState, setState, dispatch }: StateContext<QueryStateModel>,
     { payload }: AddNegativeQueryBeforeDiff
   ) {
     const state = getState();
+    // forward request payload to the retrieval and ranking module via http post
     return this.queryService.post('/api', payload.postRequest).pipe(
       take(1),
       tap(
@@ -128,6 +102,7 @@ export class QueryState {
     );
   }
 
+  // Update the state after processing implicit feedback for negative requests
   @Action(AddNegativeQueryAfterDiff)
   AddNegativeQueryAfterDiff(
     { getState, setState }: StateContext<QueryStateModel>,
@@ -150,12 +125,14 @@ export class QueryState {
     });
   }
 
+  // When an additice requests comes in the system
   @Action(AddExtendedQueryBeforeIntersect)
   AddExtendedQueryBeforeIntersect(
     { getState, setState, dispatch }: StateContext<QueryStateModel>,
     { payload }: AddExtendedQueryBeforeIntersect
   ) {
     const state = getState();
+    // forward request payload to the retrieval and ranking module via http post
     return this.queryService.post('/api', payload.postRequest).pipe(
       take(1),
       tap((result) => {
@@ -193,6 +170,7 @@ export class QueryState {
     );
   }
 
+  // Update the state after processing implicit feedback for additive requests
   @Action(AddExtendedQueryAfterInstersect)
   AddExtendedQueryAfterInstersect(
     { getState, setState }: StateContext<QueryStateModel>,
@@ -215,6 +193,7 @@ export class QueryState {
     });
   }
 
+  // Update the state after processing implicit feedback for more screens requests
   @Action(AddNextScreens)
   AddNextScreens(
     { getState, setState }: StateContext<QueryStateModel>,

@@ -1,12 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { Gui2wireApiService } from '../services/gui2wire-api.service';
 import { PostRequest, PostResult } from '../classes/post';
-import { FormControl, FormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { ImageDialogComponent } from '../image-dialog/image-dialog.component';
 import {
   AddNegativeQueryBeforeDiff,
-  AddNegativeQueryAfterDiff,
   AddQuery,
   AddExtendedQueryBeforeIntersect,
   AddNextScreens,
@@ -21,7 +19,6 @@ import { DiffService } from '../services/diff.service';
 import { IntersectService } from '../services/intersect.service';
 import { SetNoResponseService } from '../services/set-no-response.service';
 import { InstructionsDialogComponent } from '../shared/instructions-dialog/instructions-dialog.component';
-import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-ui-search-chatbot',
@@ -29,13 +26,10 @@ import { ActivatedRoute, Router } from '@angular/router';
   styleUrls: ['./ui-search-chatbot.component.css'],
 })
 export class UISearchChatbotComponent implements OnInit {
-  @Select(QueryState.getQueryResults) queryResults$: Observable<any[]>;
-  @Select(QueryState.getLastQuery) lastQuery$: Observable<any[]>;
+  @Select(QueryState.getQueryResults) queryResults$: Observable<any[]>; // Select - observable that subscribes to the results of a search request that is forwarded by the state management to the backend
+  @Select(QueryState.getLastQuery) lastQuery$: Observable<any[]>; // Select - observable that returns the latest 'query' or search request for UI screens
 
   api = API;
-
-  mode_chatbot = true; //'search ui'; //'chatbot'; //or "search ui"
-  mode_searchUI = false;
 
   postRequest: PostRequest = {
     query: '',
@@ -44,12 +38,10 @@ export class UISearchChatbotComponent implements OnInit {
     max_results: 8,
   };
 
-  results: any;
-  resultsMeta: any;
-  resultsImages: any;
+  resultsMeta: any[]; // array containing the combined metadata of results and images for displaying
+  resultsImages: any[]; // array containing the metadata of the images in the returned results from backend
   isImageLoading: boolean;
   imageToShow: string | ArrayBuffer;
-  searchForm: FormGroup;
 
   request: PostRequest;
   requestNegative: PostRequest;
@@ -63,7 +55,7 @@ export class UISearchChatbotComponent implements OnInit {
   resultsIntersect: PostResult[];
 
   snapshot;
-  lastResults: any;
+  lastResults: any[]; // array holding the laste results from backend
 
   state: string;
   stateExt: string;
@@ -88,36 +80,24 @@ export class UISearchChatbotComponent implements OnInit {
     private diffService: DiffService,
     private intersectService: IntersectService,
     public dialog: MatDialog,
-    public setNoResultsService: SetNoResponseService,
-    private route: ActivatedRoute,
-    private router: Router
+    public setNoResultsService: SetNoResponseService
   ) {}
 
   ngOnInit() {
-    // this.routeQueryParams$ = this.route.queryParams.subscribe((params) => {
-    //   params = params['dialog'];
-    //   this.openDialog();
-    // });
-    if (this.mode_searchUI === true) {
-      this.searchForm = new FormGroup({
-        value: new FormControl('login'),
-      });
-    } else {
-      if (this.setActionService.requestNegative) {
-        this.indexNext = 0;
-        this.setActionService.requestNegative.subscribe((request) => {
-          if (!request) return;
-          this.requestNegative = request.postRequest;
-          if (this.requestNegative) {
-            if (this.noResults) {
-              this.setNoResultsService.setNoResultsFlag(false);
-              this.noResults = this.setNoResultsService.getNoResultsFlag();
-            }
-            this.computeNegativeResults(this.requestNegative, this.counter);
+    if (this.setActionService.requestNegative) {
+      this.indexNext = 0;
+      this.setActionService.requestNegative.subscribe((request) => {
+        if (!request) return;
+        this.requestNegative = request.postRequest;
+        if (this.requestNegative) {
+          if (this.noResults) {
+            this.setNoResultsService.setNoResultsFlag(false);
+            this.noResults = this.setNoResultsService.getNoResultsFlag();
           }
-        });
-        this.setActionService.requestNegative = null;
-      }
+          this.computeNegativeResults(this.requestNegative, this.counter);
+        }
+      });
+      this.setActionService.requestNegative = null;
     }
 
     if (this.setActionService.requestExtended) {
@@ -146,6 +126,7 @@ export class UISearchChatbotComponent implements OnInit {
       this.setActionService.requestExtended = null;
     }
 
+    // dispatch action for state management of more screens request
     if (this.setActionService.requestMoreScreens) {
       this.setActionService.requestMoreScreens.subscribe((request) => {
         if (!request) return;
@@ -159,6 +140,8 @@ export class UISearchChatbotComponent implements OnInit {
 
         if (!this.stateExt) return;
         if (!this.counter) return;
+
+        // dispatch an action of type 'AddNextScreens'
         this.store.dispatch(
           new AddNextScreens(
             {
@@ -242,42 +225,7 @@ export class UISearchChatbotComponent implements OnInit {
     this.routeQueryParams$.unsubscribe();
   }
 
-  sendRequest() {
-    this.postRequest.query = this.searchForm.get('value').value;
-
-    this.store.dispatch(
-      new AddQuery({
-        query: this.postRequest.query,
-        requestType: RequestType[0],
-        postRequest: this.postRequest,
-        counter: this.counter,
-      })
-    );
-    this.queryResults$.subscribe((results) => {
-      if (!results) return;
-
-      this.resultsMeta = [];
-      this.resultsImages = [];
-      const primary = [];
-
-      results.forEach((result) => {
-        result.result.forEach((element) => {
-          const index = element.index;
-          const url = '/ui/' + index + '.jpg';
-          primary.push(element);
-          this.resultsImages.push(url);
-        });
-      });
-
-      if (!this.resultsMeta && !primary && !this.resultsImages) return;
-      this.resultsMeta = this.combineArrays(primary, this.resultsImages);
-
-      this.searchForm.reset();
-    });
-    this.resultsMeta = [];
-    this.resultsImages = [];
-  }
-
+  //dispatch actions for negative type requerts
   computeNegativeResults(negRequest: PostRequest, counter: number) {
     this.store.dispatch(
       new AddNegativeQueryBeforeDiff({
@@ -289,6 +237,7 @@ export class UISearchChatbotComponent implements OnInit {
     );
   }
 
+  // dispatch actions for additive type requests.
   computeExtendedResults(
     extRequest: PostRequest,
     counter: number,
@@ -304,6 +253,7 @@ export class UISearchChatbotComponent implements OnInit {
     );
   }
 
+  // computes next top results and displays results in browser
   computeNextScreensResults(
     extRequest: PostRequest,
     counter: number,
@@ -315,6 +265,7 @@ export class UISearchChatbotComponent implements OnInit {
 
     if (!this.nextResults) return;
 
+    // dispatch an action of type 'AddNextScreens'
     this.store.dispatch(
       new AddNextScreens(
         {
@@ -330,42 +281,7 @@ export class UISearchChatbotComponent implements OnInit {
     this.renderChatbotResultsFromMetaData(this.nextResults);
   }
 
-  renderChatbotResults(request: PostRequest, counter: number) {
-    this.store.dispatch(
-      new AddQuery({
-        query: request.query,
-        requestType: this.state,
-        postRequest: request,
-        counter: counter,
-      })
-    );
-    this.queryResults$.subscribe((results) => {
-      if (!results) return;
-      this.resultsMeta = [];
-      this.resultsImages = [];
-
-      const primary = [];
-
-      results.forEach((result) => {
-        if (!result) return;
-        if (!result.result) return;
-        const top = this.getTopResults(result.result);
-        top.forEach((element) => {
-          if (!element) return;
-          const index = element.index;
-          const url = '/ui/' + index + '.jpg';
-          primary.push(element);
-          this.resultsImages.push(url);
-        });
-      });
-
-      if (!this.resultsMeta && !primary && !this.resultsImages) return;
-      this.resultsMeta = this.combineArrays(primary, this.resultsImages);
-    });
-    this.resultsMeta = [];
-    this.resultsImages = [];
-  }
-
+  // method that prepares the top ranked results in array 'this.resultsMeta' to be displayed in the browser
   renderChatbotResultsFromMetaData(results: any) {
     if (!results) return;
     this.noResults = this.setNoResultsService.getNoResultsFlag();
@@ -373,6 +289,7 @@ export class UISearchChatbotComponent implements OnInit {
     this.resultsImages = [];
     const primary = [];
 
+    // getting top results (20 or more based on having requested the 'more screens' option) and configuring the image data for fronted rendering
     const top = this.getTopResults(results);
     if (!top) return;
     top.forEach((result) => {
@@ -383,6 +300,7 @@ export class UISearchChatbotComponent implements OnInit {
       this.resultsImages.push(url);
     });
     if (!this.resultsMeta && !primary && !this.resultsImages) return;
+    // prepare the combined array of ranking metadata and image metadata for frontend rendering
     this.resultsMeta = this.combineArrays(primary, this.resultsImages);
   }
 
@@ -426,6 +344,7 @@ export class UISearchChatbotComponent implements OnInit {
     }
   }
 
+  // method to combine the ranking metadata with the image meta for displaying in the browser
   combineArrays(a1, a2) {
     a1 = a1.map((value, index) => ({
       resultMeta: value,
@@ -435,10 +354,12 @@ export class UISearchChatbotComponent implements OnInit {
     return a1;
   }
 
+  // calculate the new result set based on set difference in negative type requests
   calculateSetDifference(setA, setB) {
     if (!setA) return;
     if (!setB) return;
 
+    //remove the common screens between the current and previous serach requests from the previous search request
     let diff = setA.result.filter(
       ({ index: id1 }) => !setB.result.some(({ index: id2 }) => id2 === id1)
     );
@@ -466,9 +387,12 @@ export class UISearchChatbotComponent implements OnInit {
     return diff;
   }
 
+  // calculate the new result set based on set intersection in additive type requests
   calculateSetIntersection(setA, setB) {
     if (!setA) return;
     if (!setB) return;
+
+    //retain the common screens between the current and previous serach requests from the current search request
     let intersect = setB.result.filter(({ index: id1 }) =>
       setA.result.some(({ index: id2 }) => id2 === id1)
     );
@@ -515,6 +439,7 @@ export class UISearchChatbotComponent implements OnInit {
     return top;
   }
 
+  // method that gets the next top 20 results based on the current 'indexNext'
   getNextTopResults(metaResults: any[]) {
     if (!metaResults) {
       this.noResults = true;

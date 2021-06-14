@@ -1,26 +1,26 @@
-# StateManagement
+# UI Search Bot
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 10.2.0.
+This is the code for the chatbot-based approach for retrieveing GUIs, UI Search Bot.
 
-## Development server
+The tool has NGXS State Management for logging purposes: The initial search requests is logged by NGXS as type INITIAL. Incomming requests are logged in as ADDITIVE OR NEGATIVE depending on the type of implicit user feedback.
+The NGXS state is managed in src/app/state, where the search requests are also forwarded to the Retrieval and Ranking Service. The proxy to the GUI Retrieval and Ranking API is specified in ./proxy.config.json.
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+The NGXS actions are defined in src/app/actions.
 
-## Code scaffolding
+The proxy to the Rasa Server is established via a REST API call in the chatbot widget (./chatbot/chatbot.component.ts).
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+The processing of the search results to implicit search requests is done in src/app/ui-search-chatbot/ui-search-chatbot.component.ts.
 
-## Build
+## Run the project
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+To run the project locally, execute the command `ng serve` in the project location in a terminal. The local frontend server will be reachable on `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
 
-## Running unit tests
+When you load the app, click on the bird icon in the lower right corner to open the chat widget. Then, you can start writing requests for GUIs :) And maybe ask the bot to tell you a joke or two ;)
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+## View the state changes
 
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
+To view the state changes in real-time while the user is making search requests with the tool, open the browser console (right click, "Inspect" and go to "Console"). You will see the current and next system state being logged by NGXS. The two states will be updated after each request (you need to scroll down the console to see the most recent changes).
+The states will log the incomming search query and the retrieved and ranked GUIs.
 
 ## Further help
 
